@@ -24,41 +24,21 @@
     <div class="login-weaper animated bounceInDown">
       <div class="login-left">
         <div class="login-time" v-text="currentTime" />
-        <img :src="sysInfo.sys_app_logo" alt="" class="img">
+        <img :src="sysInfo.sys_app_logo" alt="" class="img" />
         <p class="title" v-text="sysInfo.sys_app_name" />
       </div>
       <div class="login-border">
         <div class="login-main">
           <div class="login-title">用户登录</div>
-          <el-form
-            ref="loginForm"
-            :model="loginForm"
-            :rules="loginRules"
-            class="login-form"
-            autocomplete="on"
-            label-position="left"
-          >
+          <el-form ref="loginForm" :model="loginForm" :rules="loginRules" class="login-form" autocomplete="on" label-position="left">
             <el-form-item prop="username">
               <span class="svg-container">
                 <i class="el-icon-user" />
               </span>
-              <el-input
-                ref="username"
-                v-model="loginForm.username"
-                placeholder="用户名"
-                name="username"
-                type="text"
-                tabindex="1"
-                autocomplete="on"
-              />
+              <el-input ref="username" v-model="loginForm.username" placeholder="用户名" name="username" type="text" tabindex="1" autocomplete="on" />
             </el-form-item>
 
-            <el-tooltip
-              v-model="capsTooltip"
-              content="Caps lock is On"
-              placement="right"
-              manual
-            >
+            <el-tooltip v-model="capsTooltip" content="Caps lock is On" placement="right" manual>
               <el-form-item prop="password">
                 <span class="svg-container">
                   <svg-icon icon-class="password" />
@@ -77,11 +57,7 @@
                   @keyup.enter.native="handleLogin"
                 />
                 <span class="show-pwd" @click="showPwd">
-                  <svg-icon
-                    :icon-class="
-                      passwordType === 'password' ? 'eye' : 'eye-open'
-                    "
-                  />
+                  <svg-icon :icon-class="passwordType === 'password' ? 'eye' : 'eye-open'" />
                 </span>
               </el-form-item>
             </el-tooltip>
@@ -102,34 +78,11 @@
                 @keyup.enter.native="handleLogin"
               />
             </el-form-item>
-            <div
-              class="login-code"
-              style="
-                cursor: pointer;
-                width: 30%;
-                height: 48px;
-                float: right;
-                background-color: #f0f1f5;
-              "
-            >
-              <img
-                style="
-                  height: 48px;
-                  width: 100%;
-                  border: 1px solid rgba(0, 0, 0, 0.1);
-                  border-radius: 5px;
-                "
-                :src="codeUrl"
-                @click="getCode"
-              >
+            <div class="login-code" style="cursor: pointer; width: 30%; height: 48px; float: right; background-color: #f0f1f5">
+              <img style="height: 48px; width: 100%; border: 1px solid rgba(0, 0, 0, 0.1); border-radius: 5px" :src="codeUrl" @click="getCode" />
             </div>
 
-            <el-button
-              :loading="loading"
-              type="primary"
-              style="width: 100%; padding: 12px 20px; margin-bottom: 30px"
-              @click.native.prevent="handleLogin"
-            >
+            <el-button :loading="loading" type="primary" style="width: 100%; padding: 12px 20px; margin-bottom: 30px" @click.native.prevent="handleLogin">
               <span v-if="!loading">登 录</span>
               <span v-else>登 录 中...</span>
             </el-button>
@@ -139,37 +92,23 @@
     </div>
 
     <el-dialog title="Or connect with" :visible.sync="showDialog" :close-on-click-modal="false">
-      Can not be simulated on local, so please combine you own business
-      simulation! ! !
-      <br>
-      <br>
-      <br>
+      Can not be simulated on local, so please combine you own business simulation! ! !
+      <br />
+      <br />
+      <br />
       <social-sign />
     </el-dialog>
-    <div
-      id="bottom_layer"
-      class="s-bottom-layer s-isindex-wrap"
-      style="visibility: visible; width: 100%"
-    >
+    <div id="bottom_layer" class="s-bottom-layer s-isindex-wrap" style="visibility: visible; width: 100%">
       <div class="s-bottom-layer-content">
-
         <div class="lh">
-          <a class="text-color" href="https://beian.miit.gov.cn" target="_blank">
-            湘ICP备20015227号-2
-          </a>
+          <a class="text-color" href="https://beian.miit.gov.cn" target="_blank"> 湘ICP备20015227号-2 </a>
         </div>
         <div class="open-content-info">
           <div class="tip-hover-panel" style="top: -18px; right: -12px">
             <div class="rest_info_tip">
               <div class="tip-wrapper">
                 <div class="lh tip-item" style="display: none">
-                  <a
-                    class="text-color"
-                    href="https://beian.miit.gov.cn"
-                    target="_blank"
-                  >
-                  湘ICP备20015227号-2
-                  </a>
+                  <a class="text-color" href="https://beian.miit.gov.cn" target="_blank"> 湘ICP备20015227号-2 </a>
                 </div>
               </div>
             </div>
@@ -181,156 +120,145 @@
 </template>
 
 <script>
-import { getCodeImg } from '@/api/login'
-import moment from 'moment'
-import SocialSign from './components/SocialSignin'
+import { getCodeImg } from "@/api/login";
+import moment from "moment";
+import SocialSign from "./components/SocialSignin";
 
 export default {
-  name: 'Login',
+  name: "Login",
   components: { SocialSign },
   data() {
     return {
-      codeUrl: '',
-      cookiePassword: '',
+      codeUrl: "",
+      cookiePassword: "",
       refreshParticles: true,
       loginForm: {
-        username: '',
-        password: '',
+        username: "",
+        password: "",
         rememberMe: false,
-        code: '',
-        uuid: ''
+        code: "",
+        uuid: "",
       },
       loginRules: {
-        username: [
-          { required: true, trigger: 'blur', message: '用户名不能为空' }
-        ],
-        password: [
-          { required: true, trigger: 'blur', message: '密码不能为空' }
-        ],
-        code: [
-          { required: true, trigger: 'change', message: '验证码不能为空' }
-        ]
+        username: [{ required: true, trigger: "blur", message: "用户名不能为空" }],
+        password: [{ required: true, trigger: "blur", message: "密码不能为空" }],
+        code: [{ required: true, trigger: "change", message: "验证码不能为空" }],
       },
-      passwordType: 'password',
+      passwordType: "password",
       capsTooltip: false,
       loading: false,
       showDialog: false,
       redirect: undefined,
       otherQuery: {},
       currentTime: null,
-      sysInfo: ''
-    }
+      sysInfo: "",
+    };
   },
   watch: {
     $route: {
-      handler: function(route) {
-        const query = route.query
+      handler: function (route) {
+        const query = route.query;
         if (query) {
-          this.redirect = query.redirect
-          this.otherQuery = this.getOtherQuery(query)
+          this.redirect = query.redirect;
+          this.otherQuery = this.getOtherQuery(query);
         }
       },
-      immediate: true
-    }
+      immediate: true,
+    },
   },
   created() {
-    this.getCode()
+    this.getCode();
     // window.addEventListener('storage', this.afterQRScan)
-    this.getCurrentTime()
-    this.getSystemSetting()
+    this.getCurrentTime();
+    this.getSystemSetting();
   },
   mounted() {
-    if (this.loginForm.username === '') {
-      this.$refs.username.focus()
-    } else if (this.loginForm.password === '') {
-      this.$refs.password.focus()
+    if (this.loginForm.username === "") {
+      this.$refs.username.focus();
+    } else if (this.loginForm.password === "") {
+      this.$refs.password.focus();
     }
-    window.addEventListener('resize', () => {
-      this.refreshParticles = false
-      this.$nextTick(() => (this.refreshParticles = true))
-    })
+    window.addEventListener("resize", () => {
+      this.refreshParticles = false;
+      this.$nextTick(() => (this.refreshParticles = true));
+    });
   },
   destroyed() {
-    clearInterval(this.timer)
-    window.removeEventListener('resize', () => {})
+    clearInterval(this.timer);
+    window.removeEventListener("resize", () => {});
     // window.removeEventListener('storage', this.afterQRScan)
   },
   methods: {
     getSystemSetting() {
-      this.$store.dispatch('system/settingDetail').then((ret) => {
-        this.sysInfo = ret
-        document.title = ret.sys_app_name
-      })
+      this.$store.dispatch("system/settingDetail").then((ret) => {
+        this.sysInfo = ret;
+        document.title = ret.sys_app_name;
+      });
     },
     getCurrentTime() {
       this.timer = setInterval((_) => {
-        this.currentTime = moment().format('YYYY-MM-DD HH时mm分ss秒')
-      }, 1000)
+        this.currentTime = moment().format("YYYY-MM-DD HH时mm分ss秒");
+      }, 1000);
     },
     getCode() {
       getCodeImg().then((res) => {
         if (res !== undefined) {
-          this.codeUrl = res.data
-          this.loginForm.uuid = res.id
+          this.codeUrl = res.data;
+          this.loginForm.uuid = res.id;
         }
-      })
+      });
     },
     checkCapslock({ shiftKey, key } = {}) {
       if (key && key.length === 1) {
-        if (
-          (shiftKey && key >= 'a' && key <= 'z') ||
-          (!shiftKey && key >= 'A' && key <= 'Z')
-        ) {
-          this.capsTooltip = true
+        if ((shiftKey && key >= "a" && key <= "z") || (!shiftKey && key >= "A" && key <= "Z")) {
+          this.capsTooltip = true;
         } else {
-          this.capsTooltip = false
+          this.capsTooltip = false;
         }
       }
-      if (key === 'CapsLock' && this.capsTooltip === true) {
-        this.capsTooltip = false
+      if (key === "CapsLock" && this.capsTooltip === true) {
+        this.capsTooltip = false;
       }
     },
     showPwd() {
-      if (this.passwordType === 'password') {
-        this.passwordType = ''
+      if (this.passwordType === "password") {
+        this.passwordType = "";
       } else {
-        this.passwordType = 'password'
+        this.passwordType = "password";
       }
       this.$nextTick(() => {
-        this.$refs.password.focus()
-      })
+        this.$refs.password.focus();
+      });
     },
     handleLogin() {
       this.$refs.loginForm.validate((valid) => {
         if (valid) {
-          this.loading = true
+          this.loading = true;
           this.$store
-            .dispatch('user/login', this.loginForm)
+            .dispatch("user/login", this.loginForm)
             .then(() => {
-              this.$router
-                .push({ path: this.redirect || '/', query: this.otherQuery })
-                .catch(() => {})
+              this.$router.push({ path: this.redirect || "/", query: this.otherQuery }).catch(() => {});
             })
             .catch(() => {
-              this.loading = false
-              this.getCode()
-            })
+              this.loading = false;
+              this.getCode();
+            });
         } else {
-          console.log('error submit!!')
-          return false
+          console.log("error submit!!");
+          return false;
         }
-      })
+      });
     },
     getOtherQuery(query) {
       return Object.keys(query).reduce((acc, cur) => {
-        if (cur !== 'redirect') {
-          acc[cur] = query[cur]
+        if (cur !== "redirect") {
+          acc[cur] = query[cur];
         }
-        return acc
-      }, {})
-    }
-  }
-}
+        return acc;
+      }, {});
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -442,11 +370,7 @@ $cursor: #fff;
   height: 20px;
   line-height: 20px;
 }
-.open-content-info
-  .tip-hover-panel
-  .rest_info_tip
-  .tip-wrapper
-  .tip-item:last-child {
+.open-content-info .tip-hover-panel .rest_info_tip .tip-wrapper .tip-item:last-child {
   margin-right: 0;
 }
 @media screen and (max-width: 515px) {

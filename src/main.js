@@ -1,101 +1,98 @@
-import Vue from 'vue'
+import Vue from "vue";
 
-import Cookies from 'js-cookie'
+import Cookies from "js-cookie";
 
-import 'normalize.css/normalize.css' // a modern alternative to CSS resets
+import "normalize.css/normalize.css"; // a modern alternative to CSS resets
 
-import Element from 'element-ui'
-import './styles/element-variables.scss'
+import Element from "element-ui";
+import "./styles/element-variables.scss";
 
-import '@/styles/index.scss' // global css
-import '@/styles/admin.scss'
+import "@/styles/admin.scss";
+import "@/styles/index.scss"; // global css
 
-import VueCodemirror from 'vue-codemirror'
-import 'codemirror/lib/codemirror.css'
-Vue.use(VueCodemirror)
+import "codemirror/lib/codemirror.css";
+import VueCodemirror from "vue-codemirror";
+Vue.use(VueCodemirror);
 
-import App from './App'
-import store from './store'
-import router from './router'
-import permission from './directive/permission'
+import App from "./App";
+import permission from "./directive/permission";
+import router from "./router";
+import store from "./store";
 
-import { getDicts } from '@/api/admin/dict/data'
-import { getItems, setItems,setStringItems } from '@/api/table'
-import { getConfigKey } from '@/api/admin/sys-config'
-import { parseTime, resetForm, addDateRange, selectDictLabel, /* download,*/ selectItemsLabel } from '@/utils/costum'
+import { getDicts } from "@/api/admin/dict/data";
+import { getConfigKey } from "@/api/admin/sys-config";
+import { getItems, setItems, setStringItems } from "@/api/table";
+import { addDateRange, parseTime, resetForm, selectDictLabel, /* download,*/ selectItemsLabel } from "@/utils/costum";
 
-import './icons' // icon
-import './permission' // permission control
-import './utils/error-log' // error log
+import "./icons"; // icon
+import "./permission"; // permission control
+import "./utils/error-log"; // error log
 
-import Viser from 'viser-vue'
-Vue.use(Viser)
+import Viser from "viser-vue";
+Vue.use(Viser);
 
-import * as filters from './filters' // global filters
+import * as filters from "./filters"; // global filters
 
-import Pagination from '@/components/Pagination'
-import BasicLayout from '@/layout/BasicLayout'
+import Pagination from "@/components/Pagination";
+import BasicLayout from "@/layout/BasicLayout";
 
-import VueParticles from 'vue-particles'
-Vue.use(VueParticles)
+import VueParticles from "vue-particles";
+Vue.use(VueParticles);
 
-import '@/utils/dialog'
+import "@/utils/dialog";
 
 // 全局方法挂载
-Vue.prototype.getDicts = getDicts
-Vue.prototype.getItems = getItems
-Vue.prototype.setItems = setItems
-Vue.prototype.setStringItems = setStringItems
-Vue.prototype.getConfigKey = getConfigKey
-Vue.prototype.parseTime = parseTime
-Vue.prototype.resetForm = resetForm
-Vue.prototype.addDateRange = addDateRange
-Vue.prototype.selectDictLabel = selectDictLabel
-Vue.prototype.selectItemsLabel = selectItemsLabel
+Vue.prototype.getDicts = getDicts;
+Vue.prototype.getItems = getItems;
+Vue.prototype.setItems = setItems;
+Vue.prototype.setStringItems = setStringItems;
+Vue.prototype.getConfigKey = getConfigKey;
+Vue.prototype.parseTime = parseTime;
+Vue.prototype.resetForm = resetForm;
+Vue.prototype.addDateRange = addDateRange;
+Vue.prototype.selectDictLabel = selectDictLabel;
+Vue.prototype.selectItemsLabel = selectItemsLabel;
 // Vue.prototype.download = download
 
 // 全局组件挂载
-Vue.component('Pagination', Pagination)
-Vue.component('BasicLayout', BasicLayout)
+Vue.component("Pagination", Pagination);
+Vue.component("BasicLayout", BasicLayout);
 
-Vue.prototype.msgSuccess = function(msg) {
-  this.$message({ showClose: true, message: msg, type: 'success' })
-}
+Vue.prototype.msgSuccess = function (msg) {
+  this.$message({ showClose: true, message: msg, type: "success" });
+};
 
-Vue.prototype.msgError = function(msg) {
-  this.$message({ showClose: true, message: msg, type: 'error' })
-}
+Vue.prototype.msgError = function (msg) {
+  this.$message({ showClose: true, message: msg, type: "error" });
+};
 
-Vue.prototype.msgInfo = function(msg) {
-  this.$message.info(msg)
-}
+Vue.prototype.msgInfo = function (msg) {
+  this.$message.info(msg);
+};
 
-Vue.use(permission)
+Vue.use(permission);
 
 Vue.use(Element, {
-  size: Cookies.get('size') || 'medium' // set element-ui default size
-})
+  size: Cookies.get("size") || "medium", // set element-ui default size
+});
 
-import VueDND from 'awe-dnd'
-Vue.use(VueDND)
+import VueDND from "awe-dnd";
+Vue.use(VueDND);
 
-import 'remixicon/fonts/remixicon.css'
+import "remixicon/fonts/remixicon.css";
 
-console.info(`欢迎使用go-admin，谢谢您对我们的支持，在使用过程中如果有什么问题，
-请访问https://github.com/go-admin-team/go-admin 或者
- https://github.com/go-admin-team/go-admin-ui 向我们反馈，
- 谢谢！`)
+console.info("智存合壹-雷达监控系统");
 
 // register global utility filters
-Object.keys(filters).forEach(key => {
-  Vue.filter(key, filters[key])
-})
+Object.keys(filters).forEach((key) => {
+  Vue.filter(key, filters[key]);
+});
 
-Vue.config.productionTip = false
+Vue.config.productionTip = false;
 
 new Vue({
-  el: '#app',
+  el: "#app",
   router,
   store,
-  render: h => h(App)
-})
+  render: (h) => h(App),
+});

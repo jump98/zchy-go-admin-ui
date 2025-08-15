@@ -3,14 +3,14 @@
     <!-- 雷达列表和监测点列表 -->
     <div v-show="radarList.length > 0" style="position: absolute; top: 94px; right: 0px; z-index: 10; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 5px; max-height: 80vh; overflow-y: auto; color: white">
       <!-- 雷达列表 -->
-      <div>
+      <!-- <div>
         <h3>雷达列表</h3>
         <ul style="list-style: none; padding: 0; margin: 0">
           <li v-for="radar in radarList" :key="radar.radarId" :style="getRadarItemStyle(radar)" @click="selectRadar(radar)">
             {{ radar.radarName }}
           </li>
         </ul>
-      </div>
+      </div> -->
 
       <!-- 监测点列表 -->
       <div v-if="selectedRadar" style="margin-top: 10px">
@@ -34,18 +34,18 @@
       </div>
     </div>
 
-    <div class="deformationContainer" style="position: absolute; bottom: 0; right: 0; width: 100%; z-index: 8">
+    <!-- <div class="deformationContainer" style="position: absolute; bottom: 0; right: 0; width: 100%; z-index: 8">
       <DeformationLineChart v-show="timerIdForDeformationData != null" class="deformation" :image-data="chartData" :point-index="currentPointIndex" :radar-name="currentRadarName" />
       <div v-show="timerIdForDeformationData != null" style="display: flex; align-items: center; margin-bottom: 10px">
-        <label style="color: #fff">开始时间:</label>
+        <label style="color: #fff"> 开始时间: </label>
         <input v-model="startTime" type="datetime-local" style="margin-right: 20px" />
-        <label style="color: #fff">结束时间:</label>
+        <label style="color: #fff"> 结束时间: </label>
         <input v-model="endTime" type="datetime-local" style="margin-right: 20px" />
-        <!--button @click="updateChartData" style="padding: 5px 10px;">更新图表</button-->
       </div>
-    </div>
+    </div> -->
     <div id="map-container" ref="cesiumContainer" class="map" style="width: 100%">
       <div v-if="loading" class="loading-overlay">正在加载中，请稍候...</div>
+
       <!-- 鼠标位置显示 -->
       <div v-show="timerIdForDeformationData == null" class="mouse-position" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px; z-index: 100">
         经度: {{ mousePosition.longitude.toFixed(6) }} 纬度:
@@ -153,34 +153,32 @@ export default {
   methods: {
     // 监听鼠标事件
     onCesiumEventHandler() {
-      // 创建事件处理器
-
+      // 处理鼠标移动事件
       TCesiem.OnMouseMoveEvent(this.viewer, position => {
-        // const lon = Cesium.Math.toDegrees(position.longitude); // 经度
-        // const lat = Cesium.Math.toDegrees(position.latitude); // 纬度
-        this.mousePosition.longitude = position.longitude; // 经度
-        this.mousePosition.latitude = position.latitude; // 纬度
-
-        console.log(`经度: ${position.longitude}, 纬度: ${position.latitude}`);
+        this.mousePosition.longitude = position.longitude || ""; // 经度
+        this.mousePosition.latitude = position.latitude || ""; // 纬度
+        // console.log(`经度: ${position.longitude}, 纬度: ${position.latitude}`);
       });
 
-      // const handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
+      // 处理鼠标点击事件
+      TCesiem.OnMouseLifeClickEvent(this.viewer, pickedObject => {
+        if (Cesium.defined(pickedObject)) {
+          console.log("鼠标点击了:", pickedObject);
 
-      // // 监听鼠标移动
-      // handler.setInputAction(movement => {
-      //   console.log("鼠标移动", movement);
-      //   const cartesian = this.viewer.scene.pickPosition(movement.endPosition);
-      //   console.log("cartesian:", cartesian);
-      //   if (cartesian) {
-      //     const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-      //     const lon = Cesium.Math.toDegrees(cartographic.longitude); // 经度
-      //     const lat = Cesium.Math.toDegrees(cartographic.latitude); // 纬度
-      //     const height = cartographic.height; // 高度
-      //     this.mousePosition.longitude = lon;
-      //     this.mousePosition.latitude = lat;
-      //     console.log(`经度: ${lon}, 纬度: ${lat}, 高度: ${height}`);
-      //   }
-      // }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+          const cartesian = pickedObject.id.position.getValue(Cesium.JulianDate.now());
+          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          const longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6);
+          const latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6);
+
+          // 触发父组件事件，把信息传出去
+          this.$emit("radar-click", {
+            name: pickedObject.id.name,
+            description: pickedObject.id.description,
+            longitude,
+            latitude
+          });
+        }
+      });
     },
 
     // 格式化时间，将本地时间转换为UTC时间
@@ -683,6 +681,9 @@ export default {
       this.onCesiumEventHandler();
       //
       this.testGetRadarPointDeformData();
+
+      // 添加实体
+      // TCesiem.AddEntities(this.viewer);
 
       // cesium 初始化
       // this.viewer = new Cesium.Viewer(this.$refs.cesiumContainer, {

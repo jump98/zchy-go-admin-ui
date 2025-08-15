@@ -6,6 +6,12 @@ const tdtKey = "fa82c07b5ec6331934ebdd4d35468add";
 // 服务负载子域
 const subdomains = ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"];
 
+//测试位置
+const testPosition = {
+  x: 105.75563908, // 经度
+  y: 29.35135961 // 纬度
+};
+
 // 参考：https://www.cnblogs.com/wjw1014/p/17140262.html
 
 //引用public下面的Cesium.js
@@ -31,17 +37,20 @@ class tCesiem {
 
     // 创建 Cesium Viewer（2D 平面）
     const viewer = new Cesium.Viewer(dom, {
-      imageryProvider: false,
-      baseLayerPicker: false,
-      geocoder: false,
-      homeButton: true,
-      timeline: false,
-      animation: false,
-      sceneModePicker: true,
-      navigationHelpButton: false,
-      terrain: undefined,
-      sceneMode: Cesium.SceneMode.SCENE2D
+      imageryProvider: false, // 不加载默认底图（空底图）
+      baseLayerPicker: false, // 隐藏底图选择器控件
+      geocoder: false, // 隐藏搜索框（地名搜索）
+      homeButton: false, // 隐藏 Home 按钮（回到默认视角）
+      timeline: false, // 隐藏时间轴控件（Timeline）
+      animation: false, // 隐藏动画控件（播放时间变化）
+      sceneModePicker: false, // 隐藏场景模式切换按钮（2D/3D/Columbus View）
+      navigationHelpButton: false, // 隐藏导航帮助按钮（右上角小问号）
+      terrain: undefined, // 不加载地形，默认是平面
+      sceneMode: Cesium.SceneMode.SCENE2D // 设置场景为 2D 平面模式
     });
+
+    // 隐藏版权信息
+    viewer._cesiumWidget._creditContainer.style.display = "none";
 
     // 相机控制设置
     const controller = viewer.scene.screenSpaceCameraController;
@@ -99,7 +108,7 @@ class tCesiem {
     // 分段飞行到目标位置
     // ----------------------
     viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(105.75563908, 29.35135961, 20000), // 中高空
+      destination: Cesium.Cartesian3.fromDegrees(testPosition.x, testPosition.y, 20000), // 中高空
       orientation: {
         heading: Cesium.Math.toRadians(0),
         pitch: Cesium.Math.toRadians(-80),
@@ -107,9 +116,12 @@ class tCesiem {
       },
       duration: 1.5,
       complete: () => {
+        //
+        this.AddEntities(viewer); // 添加雷达实体
+
         // 飞到低空
         viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(105.75563908, 29.35135961, 1000),
+          destination: Cesium.Cartesian3.fromDegrees(testPosition.x, testPosition.y, 1000),
           orientation: {
             heading: Cesium.Math.toRadians(0),
             pitch: Cesium.Math.toRadians(-90),
@@ -155,45 +167,62 @@ class tCesiem {
   /**
    * 监听鼠标移动事件
    * @param {*} viewer
-   * @param {*} onMove
+   * @param {*} callback
    * @returns
    */
-  OnMouseMoveEvent(viewer, onMove) {
+  OnMouseMoveEvent(viewer, callback) {
     // 创建事件处理器
     const handler = this.getHandler(viewer);
     // 监听鼠标移动
     handler.setInputAction(movement => {
       // 使用 pickEllipsoid 保证即使没地形/模型也能获取经纬度
-      const cartesian = viewer.scene.pickPosition(movement.endPosition);
-      // const cartesian = viewer.camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
+      // const cartesian = viewer.scene.pickPosition(movement.endPosition);
+      const cartesian = viewer.camera.pickEllipsoid(movement.endPosition, viewer.scene.globe.ellipsoid);
       if (cartesian) {
         const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
         const lon = Cesium.Math.toDegrees(cartographic.longitude);
         const lat = Cesium.Math.toDegrees(cartographic.latitude);
         // 回调传出经纬度
-        onMove({ longitude: lon, latitude: lat });
+        callback({ longitude: lon, latitude: lat });
       } else {
-        onMove({ longitude: "", latitude: "" });
+        callback({ longitude: "", latitude: "" });
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
     return handler; // 返回 handler 方便销毁
+
+    // 监听滚轮
+    //  Cesium.ScreenSpaceEventType.WHEEL
   }
 
-  // 监听左键单击
-  // handler.setInputAction(movement => {
-  //   console.log("左键单击", movement);
-  // }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+  /**
+   * 监听鼠标左键点击事件
+   * @param {*} viewer
+   * @param {*} callback
+   * @returns
+   */
+  OnMouseLifeClickEvent(viewer, callback) {
+    if (!Cesium.defined(viewer)) {
+      console.error("Viewer is not defined");
+      return;
+    }
+    // 创建事件处理器
+    const handler = this.getHandler(viewer);
+    // 监听鼠标移动
+    handler.setInputAction(click => {
+      const pickedObject = viewer.scene.pick(click.position); // 获取点击的实体
+      console.log("pickedObject", pickedObject);
+      if (Cesium.defined(pickedObject) && pickedObject.id) {
+        console.log("选中实体：", pickedObject.id);
+        // 弹窗显示信息
+        viewer.selectedEntity = undefined; // 确保初始未选中实体
 
-  // // 监听右键单击
-  // handler.setInputAction(movement => {
-  //   console.log("右键单击", movement);
-  // }, Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+        callback(pickedObject); // 回调传出选中实体
+      }
+    }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // 监听滚轮
-  // handler.setInputAction(movement => {
-  //   console.log("滚轮事件", movement);
-  // }, Cesium.ScreenSpaceEventType.WHEEL);
+    return handler; // 返回 handler 方便销毁
+  }
 
   //获得eventHandler
   getHandler(viewer) {
@@ -203,6 +232,51 @@ class tCesiem {
       this.eventHandler = eventHandler;
     }
     return eventHandler;
+  }
+
+  // 添加实体
+  // 添加雷达实体
+  AddEntities(viewer) {
+    const radarPosition = Cesium.Cartesian3.fromDegrees(testPosition.x, testPosition.y); // 雷达经纬度
+
+    viewer.entities.add({
+      id: "radar1",
+      name: "雷达站1",
+      position: radarPosition,
+
+      // 图标（logo）
+      billboard: {
+        image: "/images/radar/3.png", // 雷达 logo
+        width: 26,
+        height: 26,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        scale: 1, // 缩放比例
+        pixelOffset: new Cesium.Cartesian2(0, -10), // 向上偏移，避免遮挡文字
+        disableDepthTestDistance: Number.POSITIVE_INFINITY // 保证不被地形遮挡
+      },
+
+      // 标签（文字）
+      label: {
+        text: "雷达站1",
+        font: "bold 16px sans-serif", // 加粗字体
+        fillColor: Cesium.Color.CYAN, // 字体颜色
+        outlineColor: Cesium.Color.BLACK, // 描边颜色
+        outlineWidth: 2, // 描边宽度
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.TOP,
+        pixelOffset: new Cesium.Cartesian2(0, 0), // 位于图标上方
+        disableDepthTestDistance: Number.POSITIVE_INFINITY, // 不被地形遮挡
+        translucencyByDistance: new Cesium.NearFarScalar(1000, 1.0, 100000, 0.5) // 距离远近透明渐变
+      },
+
+      description: `
+      <div style="font-size:14px;color:#fff;">
+        <h3>雷达站1</h3>
+        <p>位置：${testPosition.x}, ${testPosition.y}</p>
+        <p>详细信息：这里是雷达站1的详细信息</p>
+      </div>
+    `
+    });
   }
 }
 

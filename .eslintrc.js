@@ -21,6 +21,17 @@ module.exports = {
           allowFirstLine: false
         }
       }
+    ],
+    "vue/singleline-html-element-content-newline": "off",
+    "vue/html-self-closing": [
+      "error",
+      {
+        html: {
+          void: "any", // 允许 <input> 和 <input/>
+          normal: "always", // 非 void 元素必须自闭合，如 <div />
+          component: "always" // Vue 组件必须自闭合，如 <MyComponent />
+        }
+      }
     ]
   }
   // add your custom rules here

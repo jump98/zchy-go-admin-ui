@@ -1,6 +1,7 @@
 <template>
   <div class="radar-alarm-dialog">
-    <!-- :title="`雷达 ${radarInfo.radarName} 告警信息`" -->
+    <!-- :title="`雷达 ${
+    .radarName} 告警信息`" -->
     <el-dialog :title="`雷达 ${radarInfo} 告警信息`" :visible.sync="dialogVisible" width="60%" :before-close="handleClose">
       <div v-if="alarmData && alarmData.length > 0">
         <el-table :data="alarmData" style="width: 100%" max-height="400">
@@ -9,21 +10,21 @@
               {{ formatDateTime(new Date(scope.row.SvrTime)) }}
             </template>
           </el-table-column>
-          <el-table-column prop="RadarId" label="雷达ID" width="120"></el-table-column>
-          <el-table-column prop="TimeStamp" label="时间戳" width="120"></el-table-column>
-          <el-table-column prop="Voltage" label="电压"></el-table-column>
-          <el-table-column prop="Temperature" label="温度"></el-table-column>
-          <el-table-column prop="Battery" label="电池"></el-table-column>
-          <el-table-column prop="SolarPanel" label="太阳能板"></el-table-column>
-          <el-table-column prop="RadarData" label="雷达数据"></el-table-column>
+          <el-table-column prop="RadarId" label="雷达ID" width="120" />
+          <el-table-column prop="TimeStamp" label="时间戳" width="120" />
+          <el-table-column prop="Voltage" label="电压" />
+          <el-table-column prop="Temperature" label="温度" />
+          <el-table-column prop="Battery" label="电池" />
+          <el-table-column prop="SolarPanel" label="太阳能板" />
+          <el-table-column prop="RadarData" label="雷达数据" />
         </el-table>
       </div>
       <div v-else>
         <p>暂无告警信息</p>
       </div>
       <span slot="footer" class="dialog-footer">
-        <el-button @click="loadPreviousPage" :disabled="loading">上一页</el-button>
-        <el-button @click="loadNextPage" :disabled="loading">下一页</el-button>
+        <el-button :disabled="loading" @click="loadPreviousPage">上一页</el-button>
+        <el-button :disabled="loading" @click="loadNextPage">下一页</el-button>
         <el-button @click="handleClose">关闭</el-button>
       </span>
     </el-dialog>
@@ -38,12 +39,12 @@ export default {
   props: {
     visible: {
       type: Boolean,
-      default: false,
+      default: false
     },
     radarInfo: {
       type: Object,
-      default: () => ({}),
-    },
+      default: () => ({})
+    }
   },
   data() {
     return {
@@ -51,7 +52,7 @@ export default {
       alarmData: [],
       loading: false,
       currentPageTime: null,
-      historyTimes: [], // 用于存储历史查询时间的栈
+      historyTimes: [] // 用于存储历史查询时间的栈
     };
   },
   watch: {
@@ -60,7 +61,7 @@ export default {
       if (newVal) {
         this.loadNextPage();
       }
-    },
+    }
   },
   methods: {
     // 格式化日期时间
@@ -89,7 +90,7 @@ export default {
         const params = {
           num: 100,
           radarId: this.radarInfo.radarId,
-          time: this.currentPageTime || this.formatDateTime(new Date()),
+          time: this.currentPageTime || this.formatDateTime(new Date())
         };
         const response = await getRadarAlarmsBefore(params);
         if (response.code === 200) {
@@ -129,7 +130,7 @@ export default {
           const params = {
             num: 100,
             radarId: this.radarInfo.radarId,
-            time: previousTime,
+            time: previousTime
           };
 
           const response = await getRadarAlarmsBefore(params);
@@ -156,8 +157,8 @@ export default {
       } else {
         this.$message.info("已经是第一页了");
       }
-    },
-  },
+    }
+  }
 };
 </script>
 

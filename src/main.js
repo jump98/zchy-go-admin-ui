@@ -73,7 +73,7 @@ Vue.prototype.msgInfo = function (msg) {
 Vue.use(permission);
 
 Vue.use(Element, {
-  size: Cookies.get("size") || "medium", // set element-ui default size
+  size: Cookies.get("size") || "medium" // set element-ui default size
 });
 
 import VueDND from "awe-dnd";
@@ -84,7 +84,7 @@ import "remixicon/fonts/remixicon.css";
 console.info("智存合壹-雷达监控系统");
 
 // register global utility filters
-Object.keys(filters).forEach((key) => {
+Object.keys(filters).forEach(key => {
   Vue.filter(key, filters[key]);
 });
 
@@ -94,5 +94,17 @@ new Vue({
   el: "#app",
   router,
   store,
-  render: (h) => h(App),
+  render: h => h(App)
 });
+
+//
+setInterval(() => {
+  const used = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+  const total = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
+  const limit = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2);
+
+  console.log(`[Memory] Used: ${used}MB / Total: ${total}MB (${((used / total) * 100).toFixed(1)}%)， 堆大小: ${limit}MB`);
+  if (used / total > 0.95) {
+    console.error("⚠️ 内存使用率超过95%，建议检查");
+  }
+}, 30000);

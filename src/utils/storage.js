@@ -1,23 +1,23 @@
 const storage = {
   set(key, value) {
-    if (typeof value === 'object') {
-      value = JSON.stringify(value)
+    if (typeof value === "object") {
+      value = JSON.stringify(value);
     }
-    localStorage.setItem(key, value)
+    localStorage.setItem(key, value);
   },
   get(key) {
-    let value = localStorage.getItem(key)
-    if (value && value.indexOf('{') !== -1) {
-      value = JSON.parse(value)
+    let value = localStorage.getItem(key);
+    if (value && value.indexOf("{") !== -1) {
+      value = JSON.parse(value);
     }
-    return value
+    return value;
   },
   remove(key) {
-    localStorage.removeItem(key)
+    localStorage.removeItem(key);
   },
   clear() {
-    localStorage.clear()
+    localStorage.clear();
   }
-}
+};
 
-export default storage
+export default storage;

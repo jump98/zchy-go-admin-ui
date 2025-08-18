@@ -54,6 +54,8 @@
     </div>
     <!-- 雷达告警对话框 -->
     <RadarAlarmDialog :visible.sync="showAlarmDialog" :radar-info="selectedRadarForAlarm" />
+    <!-- 雷达信息弹出框 -->
+    <RadarItem :visible.sync="showRadarItemDialog" :radar-info="selectedRadarForAlarm" />
   </div>
 </template>
 
@@ -63,6 +65,7 @@ import { getRadarPointDeformData, listDeptRadarPoint } from "@/api/admin/radar-p
 import { getRadarsAlarms, listSysRadar } from "@/api/admin/sys-radar";
 import DeformationLineChart from "./radar/DeformationLineChart.vue";
 import RadarAlarmDialog from "./radar/RadarAlarmDialog.vue";
+import RadarItem from "./radar/RadarItem.vue";
 
 const radarPrefix = "radar_";
 const radarPointPrefix = "radarpt_";
@@ -76,7 +79,8 @@ export default {
   name: "Dashboard",
   components: {
     DeformationLineChart,
-    RadarAlarmDialog
+    RadarAlarmDialog,
+    RadarItem
   },
   data() {
     return {
@@ -108,7 +112,8 @@ export default {
       mousePosition: {
         longitude: 0, // 经度
         latitude: 0 // 纬度
-      }
+      },
+      showRadarItemDialog: false // 控制雷达信息弹出框显示
     };
   },
   computed: {
@@ -160,23 +165,25 @@ export default {
         // console.log(`经度: ${position.longitude}, 纬度: ${position.latitude}`);
       });
 
-      // 处理鼠标点击事件
+      // 处理鼠标左键点击事件
       TCesiem.OnMouseLifeClickEvent(this.viewer, pickedObject => {
         if (Cesium.defined(pickedObject)) {
           console.log("鼠标点击了:", pickedObject);
 
-          const cartesian = pickedObject.id.position.getValue(Cesium.JulianDate.now());
-          const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-          const longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6);
-          const latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6);
+          this.showRadarItemDialog = true;
 
-          // 触发父组件事件，把信息传出去
-          this.$emit("radar-click", {
-            name: pickedObject.id.name,
-            description: pickedObject.id.description,
-            longitude,
-            latitude
-          });
+          // const cartesian = pickedObject.id.position.getValue(Cesium.JulianDate.now());
+          // const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          // const longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6);
+          // const latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6);
+
+          // // 触发父组件事件，把信息传出去
+          // this.$emit("radar-click", {
+          //   name: pickedObject.id.name,
+          //   description: pickedObject.id.description,
+          //   longitude,
+          //   latitude
+          // });
         }
       });
     },

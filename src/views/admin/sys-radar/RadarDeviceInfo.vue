@@ -1,5 +1,5 @@
 <template>
-  <div class="radar-device-info" v-if="deviceInfo">
+  <div v-if="deviceInfo" class="radar-device-info">
     <h3>设备信息</h3>
     <p><strong>设备ID:</strong> {{ deviceInfo.radarkey }}</p>
     <p><strong>时间戳:</strong> {{ deviceInfo.timestamp }}</p>
@@ -13,10 +13,10 @@
 </template>
 
 <script>
-import { getRadarDevInfo } from '@/api/admin/sys-radar'
+import { getRadarDevInfo } from "@/api/admin/sys-radar";
 
 export default {
-  name: 'RadarDeviceInfo',
+  name: "RadarDeviceInfo",
   props: {
     radarid: {
       type: [String, Number],
@@ -27,42 +27,42 @@ export default {
     return {
       deviceInfo: null,
       timer: null
-    }
+    };
   },
   watch: {
     radarid: {
       handler(newVal) {
         if (this.timer) {
-          clearInterval(this.timer)
+          clearInterval(this.timer);
         }
         if (newVal) {
-          this.fetchDeviceInfo(newVal)
+          this.fetchDeviceInfo(newVal);
           this.timer = setInterval(() => {
-            this.fetchDeviceInfo(newVal)
-          }, 1000)
+            this.fetchDeviceInfo(newVal);
+          }, 1000);
         }
       },
       immediate: true
     }
   },
+  beforeDestroy() {
+    if (this.timer) {
+      clearInterval(this.timer);
+    }
+  },
   methods: {
     async fetchDeviceInfo(radarId) {
       try {
-        const response = await getRadarDevInfo({radarId: radarId })
-        this.deviceInfo = response.data
+        const response = await getRadarDevInfo({ radarId: radarId });
+        this.deviceInfo = response.data;
       } catch (error) {
         //console.error('获取设备信息失败:', error)
         //this.$message.error('获取设备信息失败')
-        this.deviceInfo = {} // 清空显示内容
+        this.deviceInfo = {}; // 清空显示内容
       }
     }
-  },
-  beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer)
-    }
   }
-}
+};
 </script>
 
 <style scoped>

@@ -46,6 +46,10 @@ export default {
       default: () => ({})
     }
   },
+  setup(props) {
+    // setup() 接收 props 作为第一个参数
+    console.log(" 接收 props参数:", props);
+  },
   data() {
     return {
       dialogVisible: this.visible,

@@ -62,55 +62,7 @@
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageIndex" :limit.sync="queryParams.pageSize" @pagination="getList" />
 
             <!-- 添加或修改对话框 -->
-            <el-dialog :title="title" :visible.sync="openDialog" width="600px" :close-on-click-modal="false">
-              <el-form ref="form" :model="form" :rules="rules" label-width="80px">
-                <el-form-item label="雷达名称" prop="radarName">
-                  <el-input v-model="form.radarName" placeholder="雷达名称" />
-                </el-form-item>
-                <el-form-item label="雷达编号" prop="radarKey">
-                  <el-input v-model="form.radarKey" placeholder="雷达编号" />
-                </el-form-item>
-                <el-form-item label="雷达特殊编号" prop="specialKey">
-                  <el-input v-model="form.specialKey" placeholder="雷达特殊编号" />
-                </el-form-item>
-                <el-form-item label="归属机构" prop="deptId">
-                  <treeselect v-model="form.deptId" :options="deptOptions" placeholder="请选择归属机构" />
-                </el-form-item>
-                <el-row>
-                  <el-col :span="12">
-                    <el-form-item label="经度" prop="lng">
-                      <el-input v-model="form.lng" placeholder="经度" class="lnglatnumber" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="纬度" prop="lat">
-                      <el-input v-model="form.lat" placeholder="纬度" class="lnglatnumber" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-row>
-                  <el-col :span="12">
-                    <el-form-item label="高度" prop="alt">
-                      <el-input v-model="form.alt" placeholder="高度" class="lnglatnumber" />
-                    </el-form-item>
-                  </el-col>
-                  <el-col :span="12">
-                    <el-form-item label="状态" prop="status">
-                      <el-input v-model="form.status" placeholder="状态" />
-                    </el-form-item>
-                  </el-col>
-                </el-row>
-                <el-form-item label="备注" prop="remark">
-                  <el-input v-model="form.remark" placeholder="备注" />
-                </el-form-item>
-              </el-form>
-              <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="onClickSubmitFormBtn">确 定</el-button>
-                <el-button @click="onClickCancelBtn">取 消</el-button>
-              </div>
-            </el-dialog>
-
-            <!-- -->
+            <RadarEditDialog :visible.sync="openDialog" :radar-info="radarRow" :action="dialogAction" :dept-options="deptOptions" @addRadar="onAddRadarEvent" />
           </el-col>
         </el-row>
         <el-row style="margin-top: 20px">
@@ -137,21 +89,21 @@
 </template>
 
 <script>
-import { addSysRadar, delSysRadar, getSysRadar, listSysRadar, updateSysRadar } from "@/api/admin/sys-radar";
+import { delSysRadar, listSysRadar, updateSysRadar } from "@/api/admin/sys-radar";
 
 import { treeselect } from "@/api/admin/sys-dept";
 
-import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
-import { formValidation } from "@/utils/validate";
+
 import RadarPoint from "../radar-point/index.vue";
 import RadarDeviceInfo from "./RadarDeviceInfo.vue";
+import RadarEditDialog from "./RadarEditDialog.vue";
 import RadarStateInfo from "./RadarStateInfo.vue";
 import { checkPermission } from "@/utils/permission";
 
 export default {
   name: "SysRadar",
-  components: { Treeselect, RadarPoint, RadarDeviceInfo, RadarStateInfo },
+  components: { RadarPoint, RadarDeviceInfo, RadarStateInfo, RadarEditDialog },
   data() {
     return {
       //当前的雷达ID
@@ -166,8 +118,6 @@ export default {
       multiple: true,
       // 总条数
       total: 0,
-      // 弹出层标题
-      title: "",
       //弹窗action
       dialogAction: 0, //1=修改 2=增加
       // 是否显示弹出层
@@ -194,34 +144,10 @@ export default {
         deptId: undefined
       },
       // 表单参数
-      form: {},
+      radarRow: {},
       defaultProps: {
         children: "children",
         label: "label"
-      },
-      // 表单校验
-      rules: {
-        radarId: [{ required: true, message: "RadarID不能为空", trigger: "blur" }],
-        radarName: [{ required: true, message: "雷达名称不能为空", trigger: "blur" }],
-        radarKey: [{ required: true, message: "雷达编号不能为空", trigger: "blur" }],
-        deptId: [{ required: true, message: "机构不能为空", trigger: "blur" }],
-        lng: [
-          {
-            required: true,
-            //此处的'formValidation'不可随着:model改变而改变，因为formValidations.js已经定义好的，全局使用
-            validator: formValidation.validatorLongitude,
-            message: "经度范围：-180~180（保留小数点后七位）",
-            trigger: "change"
-          }
-        ],
-        lat: [
-          {
-            required: true,
-            validator: formValidation.validatorLatitude,
-            message: "纬度范围：-90~90（保留小数点后七位）",
-            trigger: "change"
-          }
-        ]
       }
     };
   },
@@ -235,8 +161,7 @@ export default {
     console.log("radar index.vue created");
     this.getList();
     this.getTreeselect();
-    let ok = this.checkThisPermission(["admin:sysRadar:edit"]);
-    console.log("checkThisPermission:", ok);
+    // this.checkThisPermission(["admin:sysRadar:edit"]);
   },
   methods: {
     /** 查询参数列表 */
@@ -249,10 +174,9 @@ export default {
       this.loading = false;
     },
     /** 查询机构下拉树结构 */
-    getTreeselect() {
-      treeselect().then(response => {
-        this.deptOptions = response.data;
-      });
+    async getTreeselect() {
+      let resp = await treeselect();
+      this.deptOptions = resp.data;
     },
     // 筛选节点
     filterNode(value, data) {
@@ -279,29 +203,6 @@ export default {
     checkThisPermission(value) {
       return checkPermission(value);
     },
-    // 表单重置
-    reset() {
-      this.form = {
-        radarId: 0,
-        radarName: undefined,
-        radarKey: undefined,
-        specialKey: undefined,
-        deptId: undefined,
-        lng: undefined,
-        lat: undefined,
-        alt: undefined,
-        remark: undefined,
-        status: undefined
-      };
-      this.resetForm("form");
-    },
-    // getImgList: function () {
-    //   this.form[this.fileIndex] = this.$refs["fileChoose"].resultList[0].fullUrl;
-    // },
-    // fileClose: function () {
-    //   console.error("fileClose");
-    //   this.fileOpen = false;
-    // },
 
     /** 搜索按钮操作 */
     handleQuery() {
@@ -315,18 +216,44 @@ export default {
       this.queryParams.deptId = "";
       this.handleQuery();
     },
+
     //点击新增雷达
     onClickAddRadarBtn() {
-      this.reset();
+      // this.reset();
       this.getTreeselect();
       this.openDialog = true;
-      this.title = "添加雷达管理";
       this.dialogAction = 2;
+      this.radarRow = {
+        // radarId: 0,
+        // radarName: "",
+        // radarKey: "",
+        // specialKey: "",
+        // deptId: 0,
+        // lng: "",
+        // lat: "",
+        // alt: "",
+        // remark: "",
+        // status: 0
+      };
+    },
+    /** 修改按钮操作 */
+    async onClickUpdateRadarBtn(row) {
+      // console.log("点击修改:", row);
+      if (!row.radarId) return;
+      this.radarRow = row;
+      this.openDialog = true;
+      this.dialogAction = 1;
+    },
+
+    //添加雷达事件
+    onAddRadarEvent(row) {
+      // console.log("添加雷达事件.row:", row);
+      this.sysRadarList.push(row);
     },
 
     // 当选择项发生变化时会触发该事件
     onHandleSelectionChange(selection) {
-      console.error("当选择项发生变化时会触发该事件.onHandleSelectionChange");
+      console.log("当选择项发生变化时会触发该事件");
       this.ids = selection.map(item => item.radarId);
       this.single = selection.length !== 1;
       this.multiple = !selection.length;
@@ -334,29 +261,18 @@ export default {
 
     //当表格的当前行发生变化的时候会触发该事件
     onHandleCurrentChange(currentRow) {
-      // console.log("当表格的当前行发生变化的时候会触发该事件 currentRow", currentRow?.radarId);
-      // console.log("当表格的当前行发生变化的时候会触发该事件 oldCurrentRow", oldCurrentRow?.radarId);
+      console.log("当表格的当前行发生变化的时候会触发该事件");
       if (currentRow) {
         console.log("设置curradarid:", currentRow.radarId);
         this.curradarid = currentRow.radarId;
         this.$refs.refRadarPoint.getList(this.curradarid);
       } else {
-        console.error("设置curradarid=0");
+        console.log("设置curradarid=0");
         this.curradarid = 0;
       }
     },
-    /** 修改按钮操作 */
-    async onClickUpdateRadarBtn(row) {
-      console.log("点击修改");
-      this.reset();
-      const radarId = row.radarId || this.ids;
-      let response = await getSysRadar(radarId);
-      console.log("获得雷达信息结果:", response.data);
-      this.form = response.data;
-      this.openDialog = true;
-      this.title = "修改雷达管理";
-      this.dialogAction = 1;
-    },
+
+    //确定按钮
     handleConfirmProject(row) {
       let self = this;
       this.$confirm('要确认"' + row.radarName + '"雷达吗?', "警告", {
@@ -382,42 +298,6 @@ export default {
           row.fromProject = 1;
         });
     },
-    /** 提交按钮 */
-    async onClickSubmitFormBtn() {
-      this.$refs["form"].validate(valid => {
-        if (valid) {
-          if (this.form.radarId !== undefined) {
-            updateSysRadar(this.form).then(response => {
-              if (response.code === 200) {
-                console.log("this.form:", this.form);
-                console.log("修改雷达信息结果:", response);
-                this.msgSuccess(response.msg);
-                this.openDialog = false;
-
-                this.getList();
-              } else {
-                this.msgError(response.msg);
-              }
-            });
-          } else {
-            addSysRadar(this.form).then(response => {
-              if (response.code === 200) {
-                this.msgSuccess(response.msg);
-                this.openDialog = false;
-                this.getList();
-              } else {
-                this.msgError(response.msg);
-              }
-            });
-          }
-        }
-      });
-    },
-    // 取消按钮
-    onClickCancelBtn() {
-      this.openDialog = false;
-      this.reset();
-    },
 
     /** 删除按钮操作 */
     onClickDeleteRadarBtn(row) {
@@ -442,8 +322,7 @@ export default {
         })
         .catch(function () {});
     },
-    handleRowStyle({ row, rowIndex }) {
-      console.log("handleRowStyle", row, rowIndex);
+    handleRowStyle({ row }) {
       if (row.fromProject) {
         return { backgroundColor: "#f0f9eb", color: "#67C23A" };
       }

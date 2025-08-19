@@ -77,22 +77,3 @@ export default {
   }
 };
 </script>
-
-<style>
-/* 全局修改指定弹窗标题栏背景和文字颜色 */
-.my-radar-dialog .el-dialog__header {
-  background-color: #304156 !important; /* 背景色深色 */
-  color: #fff !important; /* 标题文字白色 */
-  /* font-weight: bold; */
-}
-
-/* 修改关闭按钮颜色 */
-.my-radar-dialog .el-dialog__title {
-  color: #fff !important; /* 默认白色 */
-}
-
-.my-radar-dialog .el-dialog__headerbtn .el-dialog__close {
-  color: #fff !important; /* 悬停红色 */
-  font-size: 23px;
-}
-</style>

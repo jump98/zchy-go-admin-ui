@@ -24,8 +24,9 @@ export default {
   name: "RadarStateInfo",
   props: {
     radarid: {
-      type: String,
-      default: ""
+      type: Number,
+      required: true,
+      default: 0
     }
   },
   data() {
@@ -37,6 +38,7 @@ export default {
   watch: {
     radarid: {
       handler(newVal) {
+        console.log("watch.handler:", newVal);
         // 清除之前的定时器
         if (this.timer) {
           clearInterval(this.timer);
@@ -45,10 +47,12 @@ export default {
 
         // 如果有新的radarid，则获取数据并设置定时器
         if (newVal) {
+          console.log("RadarStateInfo.watch.newVal");
           this.fetchStateInfo();
-          this.timer = setInterval(() => {
-            this.fetchStateInfo();
-          }, 1000);
+          //TODO:
+          // this.timer = setInterval(() => {
+          //   this.fetchStateInfo();
+          // }, 1000);
         }
       },
       immediate: true
@@ -70,7 +74,7 @@ export default {
           this.stateInfo = response.data || {};
         })
         .catch(error => {
-          //console.error('获取雷达状态信息失败:', error)
+          console.error("获取雷达状态信息失败:", error);
           this.stateInfo = {}; // 清空显示内容
         });
     },

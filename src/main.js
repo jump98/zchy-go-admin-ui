@@ -98,13 +98,13 @@ new Vue({
 });
 
 //
-setInterval(() => {
-  const used = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
-  const total = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
-  const limit = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2);
+// setInterval(() => {
+//   const used = (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+//   const total = (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
+//   const limit = (performance.memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2);
 
-  console.log(`[Memory] Used: ${used}MB / Total: ${total}MB (${((used / total) * 100).toFixed(1)}%)， 堆大小: ${limit}MB`);
-  if (used / total > 0.95) {
-    console.error("⚠️ 内存使用率超过95%，建议检查");
-  }
-}, 30000);
+//   console.log(`[Memory] Used: ${used}MB / Total: ${total}MB (${((used / total) * 100).toFixed(1)}%)， 堆大小: ${limit}MB`);
+//   if (used / total > 0.95) {
+//     console.error("⚠️ 内存使用率超过95%，建议检查");
+//   }
+// }, 30000);

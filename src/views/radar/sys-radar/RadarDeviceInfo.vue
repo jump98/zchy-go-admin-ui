@@ -19,8 +19,9 @@ export default {
   name: "RadarDeviceInfo",
   props: {
     radarid: {
-      type: [String, Number],
-      required: true
+      type: Number,
+      required: true,
+      default: 0
     }
   },
   data() {
@@ -36,10 +37,12 @@ export default {
           clearInterval(this.timer);
         }
         if (newVal) {
+          console.log("RadarDeviceInfo.watch.radarid.newVal:", newVal);
           this.fetchDeviceInfo(newVal);
-          this.timer = setInterval(() => {
-            this.fetchDeviceInfo(newVal);
-          }, 1000);
+          //TODO:
+          // this.timer = setInterval(() => {
+          //   this.fetchDeviceInfo(newVal);
+          // }, 1000);
         }
       },
       immediate: true
@@ -53,10 +56,11 @@ export default {
   methods: {
     async fetchDeviceInfo(radarId) {
       try {
+        console.log("fetchDeviceInfo,开始获得雷达信息:", radarId);
         const response = await getRadarDevInfo({ radarId: radarId });
         this.deviceInfo = response.data;
       } catch (error) {
-        //console.error('获取设备信息失败:', error)
+        console.error("获取设备信息失败:", error);
         //this.$message.error('获取设备信息失败')
         this.deviceInfo = {}; // 清空显示内容
       }

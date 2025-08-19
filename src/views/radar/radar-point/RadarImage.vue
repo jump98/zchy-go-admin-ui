@@ -12,7 +12,11 @@ export default {
     LargeLineChart
   },
   props: {
-    radarid: 0
+    radarid: {
+      type: Number,
+      required: true,
+      default: 0
+    }
   },
   data() {
     return {
@@ -25,7 +29,7 @@ export default {
     radarid: {
       handler(newVal) {
         console.log("RadarImage.vue.radarid=", newVal);
-        this.GetImageData(newVal);
+        this.getImageData(newVal);
       },
       deep: true
     }
@@ -35,6 +39,7 @@ export default {
     this.chartData = Array.from({ length: 200 }, () => Math.floor(Math.random() * 1000));
   },
   mounted() {
+    console.log("RadarImage.mounted");
     this.startTimer();
   },
   beforeDestroy() {
@@ -51,24 +56,23 @@ export default {
       this.emitAddRadarPoint(data);
     },
     /** 查询参数列表 */
-    GetImageData(radarid) {
-      let that = this;
-      //console.log('GetImageData radarid=',radarid)
-      if (radarid === undefined) return;
-      getSysRadarImage(radarid).then(res => {
-        //console.log('getSysRadarImage:',res)
-        //that.chartData=res.data.EchoData
-        that.chartData = res.data.Data;
-        that.svrTime = res.data.SvrTime;
-      });
+    async getImageData(radarid) {
+      //console.log('getImageData radarid=',radarid)
+      if (!radarid) return;
+      let resp = await getSysRadarImage(radarid);
+      console.log("获取雷达影像结果:", resp);
+      this.chartData = resp.data.Data;
+      this.svrTime = resp.data.SvrTime;
     },
     startTimer() {
-      let that = this;
-      this.timerId = setTimeout(() => {
-        //console.log("Timer executed");
-        that.GetImageData(that.radarid);
-        that.startTimer();
-      }, 1000);
+      let self = this;
+      console.log("that.radarid:", self.radarid);
+      if (!self.radarid) return;
+      // this.timerId = setTimeout(() => {
+      //console.log("Timer executed");
+      self.getImageData(self.radarid);
+      self.startTimer();
+      // }, 1000);
     }
   }
 };

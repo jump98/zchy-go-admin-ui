@@ -2,10 +2,11 @@ import request from "@/utils/request";
 
 // 查询SysRadar列表
 export function listSysRadar(query) {
+  console.log("listSysRadar.query:", query);
   return request({
     url: "/api/v1/sys-radar",
     method: "get",
-    params: query,
+    params: query
   });
 }
 
@@ -13,15 +14,15 @@ export function listSysRadar(query) {
 export function getSysRadar(radarId) {
   return request({
     url: "/api/v1/sys-radar/" + radarId,
-    method: "get",
+    method: "get"
   });
 }
 
-// 查询SysRadar详细
+// 获取雷达影像
 export function getSysRadarImage(radarId) {
   return request({
     url: "/api/v1/sys-radar/radarimage/" + radarId,
-    method: "get",
+    method: "get"
   });
 }
 
@@ -30,7 +31,7 @@ export function addSysRadar(data) {
   return request({
     url: "/api/v1/sys-radar",
     method: "post",
-    data: data,
+    data: data
   });
 }
 
@@ -39,7 +40,7 @@ export function updateSysRadar(data) {
   return request({
     url: "/api/v1/sys-radar/" + data.radarId,
     method: "put",
-    data: data,
+    data: data
   });
 }
 
@@ -48,7 +49,7 @@ export function delSysRadar(data) {
   return request({
     url: "/api/v1/sys-radar",
     method: "delete",
-    data: data,
+    data: data
   });
 }
 
@@ -57,7 +58,7 @@ export function getRadarsAlarms(data) {
   return request({
     url: "/api/v1/sys-radar/get_alarms",
     method: "post",
-    data: data,
+    data: data
   });
 }
 
@@ -66,7 +67,7 @@ export function getRadarDevInfo(data) {
   return request({
     url: "/api/v1/sys-radar/get_dev_info",
     method: "post",
-    data: data,
+    data: data
   });
 }
 
@@ -75,7 +76,7 @@ export function getRadarStateInfo(data) {
   return request({
     url: "/api/v1/sys-radar/get_state_info",
     method: "post",
-    data: data,
+    data: data
   });
 }
 
@@ -84,6 +85,6 @@ export function getRadarAlarmsBefore(data) {
   return request({
     url: "/api/v1/sys-radar/get_alarms_before",
     method: "post",
-    data: data,
+    data: data
   });
 }

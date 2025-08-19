@@ -27,7 +27,10 @@ export default {
       type: Array,
       required: true
     },
-    imageTime: ""
+    imageTime: {
+      type: String,
+      default: ""
+    }
   },
   data() {
     return {

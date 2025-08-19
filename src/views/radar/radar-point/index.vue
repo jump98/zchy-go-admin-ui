@@ -330,10 +330,11 @@ export default {
     },
     /** 查询参数列表 */
     getList(radarid) {
-      if (radarid === undefined) {
+      console.log("getList.radarid:", radarid);
+      if (!radarid) {
         radarid = this.radarid;
       }
-      if (radarid === undefined) return;
+      if (!radarid) return;
       this.loading = true;
       this.queryParams.radarId = radarid;
       listRadarPoint(this.addDateRange(this.queryParams, this.dateRange)).then(response => {

@@ -81,7 +81,12 @@
               {{ radarIdFormat(scope.row) }}
             </template>
           </el-table-column>
-          <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" /><el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column label="距离" align="center" prop="distance" :show-overflow-tooltip="true" /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
+          <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" /> <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column
+            label="距离"
+            align="center"
+            prop="distance"
+            :show-overflow-tooltip="true"
+          /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
             </template> </el-table-column
@@ -96,8 +101,8 @@
           </el-table-column>
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
-              <el-button slot="reference" v-permisaction="['admin:radarPoint:edit']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)">修改 </el-button>
-              <el-button slot="reference" v-permisaction="['admin:radarPoint:remove']" size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)">删除 </el-button>
+              <el-button slot="reference" v-permisaction="['admin:radarPoint:edit']" size="mini" type="text" icon="el-icon-edit" @click="handleUpdate(scope.row)"> 修改 </el-button>
+              <el-button slot="reference" v-permisaction="['admin:radarPoint:remove']" size="mini" type="text" icon="el-icon-delete" @click="handleDelete(scope.row)"> 删除 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -212,7 +217,10 @@ export default {
     RadarImage
   },
   props: {
-    radarid: 0
+    radarid: {
+      type: Number,
+      default: 0
+    }
   },
   data() {
     return {

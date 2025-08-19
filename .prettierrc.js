@@ -1,5 +1,5 @@
 module.exports = {
-  printWidth: 800,
+  printWidth: 350,
   tabWidth: 2,
   useTabs: false,
   semi: true,
@@ -11,5 +11,5 @@ module.exports = {
   jsxBracketSameLine: false,
   htmlWhitespaceSensitivity: "css",
   arrowParens: "avoid",
-  endOfLine: "auto",
+  endOfLine: "auto"
 };

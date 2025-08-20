@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import LargeLineChart from "./LargeLineChart2";
+import LargeLineChart from "./LargeLineChart.vue";
 import { getSysRadarImage } from "@/api/admin/sys-radar";
 
 export default {
@@ -28,10 +28,11 @@ export default {
   watch: {
     radarid: {
       handler(newVal) {
+        if (!newVal) return;
         console.log("RadarImage.vue.radarid=", newVal);
         this.getImageData(newVal);
       },
-      deep: true
+      immediate: true
     }
   },
   created() {

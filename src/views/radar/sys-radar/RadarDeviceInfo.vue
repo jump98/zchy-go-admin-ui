@@ -50,12 +50,11 @@ export default {
   methods: {
     async fetchDeviceInfo(radarId) {
       try {
-        console.log("fetchDeviceInfo,开始获得雷达信息:", radarId);
-        const response = await getRadarDevInfo({ radarId: radarId });
-        this.deviceInfo = response.data;
+        const resp = await getRadarDevInfo({ radarId: radarId });
+        console.log("获得雷达设备信息:", resp.data);
+        this.deviceInfo = resp.data;
       } catch (error) {
         console.error("获取设备信息失败:", error);
-        //this.$message.error('获取设备信息失败')
         this.deviceInfo = {}; // 清空显示内容
       }
     }

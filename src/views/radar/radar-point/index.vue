@@ -4,70 +4,7 @@
       <RadarImage v-if="checkThisPermission(['admin:radarPoint:edit'])" :radarid="radarid" @sigAddRadarPoint="onAddRadarPoint" />
       <el-divider>以下是当前的雷达的监测点列表</el-divider>
       <el-card class="box-card">
-        <!--el-form ref="queryForm" :model="queryParams" :inline="true" label-width="68px">
-                    <el-form-item label="PointID" prop="id"><el-input v-model="queryParams.id" placeholder="请输入PointID" clearable
-                                              size="small" @keyup.enter.native="handleQuery"/>
-                            </el-form-item>
-                        <el-form-item label="监测点名称" prop="pointName"><el-input v-model="queryParams.pointName" placeholder="请输入监测点名称" clearable
-                                              size="small" @keyup.enter.native="handleQuery"/>
-                            </el-form-item>
-                        <el-form-item label="监测点编号" prop="pointKey"><el-input v-model="queryParams.pointKey" placeholder="请输入监测点编号" clearable
-                                              size="small" @keyup.enter.native="handleQuery"/>
-                            </el-form-item>
-                        <el-form-item label="激活状态" prop="aStatus"><el-select v-model="queryParams.aStatus"
-                                               placeholder="监测点管理激活状态" clearable size="small">
-                                        <el-option
-                                                v-for="dict in aStatusOptions"
-                                                :key="dict.value"
-                                                :label="dict.label"
-                                                :value="dict.value"
-                                        />
-                                    </el-select>
-                            </el-form-item>
-                        
-                    <el-form-item>
-                        <el-button type="primary" icon="el-icon-search" size="mini" @click="handleQuery">搜索</el-button>
-                        <el-button icon="el-icon-refresh" size="mini" @click="resetQuery">重置</el-button>
-                    </el-form-item>
-                </el-form-->
-
-        <!--el-row :gutter="10" class="mb8">
-                    <el-col :span="1.5">
-                        <el-button
-                                v-permisaction="['admin:radarPoint:add']"
-                                type="primary"
-                                icon="el-icon-plus"
-                                size="mini"
-                                @click="handleAdd"
-                        >新增
-                        </el-button>
-                    </el-col>
-                    <el-col :span="1.5">
-                        <el-button
-                                v-permisaction="['admin:radarPoint:edit']"
-                                type="success"
-                                icon="el-icon-edit"
-                                size="mini"
-                                :disabled="single"
-                                @click="handleUpdate"
-                        >修改
-                        </el-button>
-                    </el-col>
-                    <el-col :span="1.5">
-                        <el-button
-                                v-permisaction="['admin:radarPoint:remove']"
-                                type="danger"
-                                icon="el-icon-delete"
-                                size="mini"
-                                :disabled="multiple"
-                                @click="handleDelete"
-                        >删除
-                        </el-button>
-                    </el-col>
-                </el-row-->
-
         <el-table v-loading="loading" :data="radarPointList" @selection-change="handleSelectionChange">
-          <!--el-table-column type="selection" width="55" align="center"/-->
           <el-table-column label="名称" align="center" prop="pointName" :show-overflow-tooltip="true" />
           <el-table-column label="编号" align="center" prop="pointKey" :show-overflow-tooltip="true" />
           <el-table-column label="下标" align="center" prop="pointIndex" :show-overflow-tooltip="true" />
@@ -89,8 +26,9 @@
           /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
-            </template> </el-table-column
-          ><el-table-column label="消警状态" align="center" prop="xStatus" :formatter="xStatusFormat" width="100">
+            </template>
+          </el-table-column>
+          <el-table-column label="消警状态" align="center" prop="xStatus" :formatter="xStatusFormat" width="100">
             <template slot-scope="scope">
               {{ xStatusFormat(scope.row) }}
             </template> </el-table-column
@@ -300,6 +238,7 @@ export default {
     };
   },
 
+  ///
   watch: {
     radarid: {
       handler(newVal) {

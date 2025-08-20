@@ -65,6 +65,7 @@
             <RadarEditDialog :visible.sync="openDialog" :radar-info="radarRow" :action="dialogAction" :dept-options="deptOptions" @addRadar="onAddRadarEvent" />
           </el-col>
         </el-row>
+
         <el-row style="margin-top: 20px">
           <el-col>
             <div v-show="curradarid != 0" class="radar-components-row">
@@ -73,13 +74,17 @@
               </div>
             </div>
             <div class="radar-components-row">
+              <!-- 显示雷达设备状态  -->
               <div class="radar-component">
                 <RadarStateInfo v-show="curradarid != 0" :radarid="curradarid" />
               </div>
+              <!-- 显示雷达设备信息  -->
               <div class="radar-component">
                 <RadarDeviceInfo v-show="curradarid != 0" :radarid="curradarid" />
               </div>
             </div>
+
+            <!-- 显示点位信息  -->
             <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radarid="curradarid" />
           </el-col>
         </el-row>

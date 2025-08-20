@@ -22,10 +22,13 @@ import { fastFormatDate } from "@/utils/time";
 // import 'echarts/lib/component/legend'
 
 export default {
+  name: "LargeLineChart",
+
   props: {
     imageData: {
       type: Array,
-      required: true
+      required: true,
+      default: () => []
     },
     imageTime: {
       type: String,

@@ -330,7 +330,7 @@ export default {
     },
     /** 查询参数列表 */
     getList(radarid) {
-      console.log("getList.radarid:", radarid);
+      console.log("查询雷达点位信息，radarid:", radarid);
       if (!radarid) {
         radarid = this.radarid;
       }

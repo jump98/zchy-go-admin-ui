@@ -33,25 +33,19 @@ export default {
   watch: {
     radarid: {
       handler(newVal) {
-        if (this.timer) {
-          clearInterval(this.timer);
-        }
-        if (newVal) {
-          console.log("RadarDeviceInfo.watch.radarid.newVal:", newVal);
-          this.fetchDeviceInfo(newVal);
-          //TODO:
-          // this.timer = setInterval(() => {
-          //   this.fetchDeviceInfo(newVal);
-          // }, 1000);
-        }
+        if (!newVal) return;
+        // if (this.timer) {
+        //   clearInterval(this.timer);
+        // }
+        this.fetchDeviceInfo(newVal);
       },
       immediate: true
     }
   },
   beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
+    // if (this.timer) {
+    //   clearInterval(this.timer);
+    // }
   },
   methods: {
     async fetchDeviceInfo(radarId) {

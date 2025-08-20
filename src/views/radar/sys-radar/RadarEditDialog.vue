@@ -113,7 +113,7 @@ export default {
       console.log("this.radarInfo:", this.radarInfo);
     },
 
-    /** 提交按钮 */
+    //提交按钮
     async onClickSubmitFormBtn() {
       this.$refs["form"].validate(valid => {
         if (valid) {
@@ -146,7 +146,7 @@ export default {
         }
       });
     },
-    // 取消按钮
+    //取消按钮
     onClickCancelBtn() {
       this.close();
     },
@@ -157,7 +157,6 @@ export default {
       this.$emit("update:visible", false);
     },
     onSelect(node) {
-      console.log("选中的code:", node);
       this.selectDept.deptName = node.label;
       this.selectDept.deptId = node.id;
     }

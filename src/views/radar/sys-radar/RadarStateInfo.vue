@@ -31,52 +31,68 @@ export default {
   },
   data() {
     return {
-      timer: null,
+      timerId: null, //定时器id
       stateInfo: {}
     };
   },
   watch: {
     radarid: {
-      handler(newVal) {
-        console.log("watch.handler:", newVal);
+      handler(newVal, oldVal) {
+        if (!newVal) return;
+        console.log("雷达状态信息radarid改变:", newVal, "oldVal:", oldVal);
         // 清除之前的定时器
-        if (this.timer) {
-          clearInterval(this.timer);
-          this.timer = null;
-        }
-
-        // 如果有新的radarid，则获取数据并设置定时器
-        if (newVal) {
-          console.log("RadarStateInfo.watch.newVal");
-          this.fetchStateInfo();
-          //TODO:
-          // this.timer = setInterval(() => {
-          //   this.fetchStateInfo();
-          // }, 1000);
-        }
+        this.closeTimeout();
+        // 获取雷达状态信息
+        this.getStateInfo();
       },
       immediate: true
     }
   },
+  created() {},
+  mounted() {},
+
+  activated() {
+    // keep-alive 页面再次激活时启动轮询
+    this.getStateInfo();
+  },
+
+  deactivated() {
+    // keep-alive 页面隐藏时停止轮询
+    this.closeTimeout();
+  },
+
   beforeDestroy() {
-    // 组件销毁前清除定时器
-    if (this.timer) {
-      clearInterval(this.timer);
-      this.timer = null;
-    }
+    // 组件销毁前彻底停止轮询
+    console.log("RadarStateInfo beforeDestroy");
+    this.closeTimeout();
+  },
+  destroyed() {
+    console.log("RadarStateInfo destroyed");
   },
   methods: {
-    fetchStateInfo() {
+    //获取雷达状态信息
+    async getStateInfo() {
       if (!this.radarid) return;
+      try {
+        let resp = await getRadarStateInfo({ radarId: this.radarid });
+        console.log("获取雷达状态信息:", resp);
+        this.stateInfo = resp.data || {};
+        this.timerId = setTimeout(() => this.getStateInfo(), 30000); //30秒轮询
+      } catch (error) {
+        console.error("获取雷达状态信息失败:", error);
+        this.stateInfo = {};
+        //后续可以根据失败的次数，来设置timeout的时间间隔
+        this.closeTimeout();
+      }
+    },
 
-      getRadarStateInfo({ radarId: this.radarid })
-        .then(response => {
-          this.stateInfo = response.data || {};
-        })
-        .catch(error => {
-          console.error("获取雷达状态信息失败:", error);
-          this.stateInfo = {}; // 清空显示内容
-        });
+    //关闭定时器
+    closeTimeout() {
+      if (this.timerId) {
+        clearTimeout(this.timerId);
+        this.timerId = null;
+        console.log("RadarStateInfo.轮询已停止");
+      }
     },
 
     formatTimestamp(timestamp) {
@@ -113,6 +129,8 @@ export default {
       if (state === undefined || state === null) return "-";
       return state === 0 ? "充电中" : "放电中";
     }
+
+    //
   }
 };
 </script>

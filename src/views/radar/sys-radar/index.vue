@@ -67,6 +67,9 @@
         </el-row>
 
         <el-row style="margin-top: 20px">
+          <!-- 显示点位信息  -->
+          <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radarid="curradarid" />
+
           <el-col>
             <div v-show="curradarid != 0" class="radar-components-row">
               <div class="radar-component">
@@ -83,9 +86,6 @@
                 <RadarDeviceInfo v-show="curradarid != 0" :radarid="curradarid" />
               </div>
             </div>
-
-            <!-- 显示点位信息  -->
-            <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radarid="curradarid" />
           </el-col>
         </el-row>
       </el-card>

@@ -11,7 +11,6 @@
 <script>
 // 完整引入方式
 import echarts from "echarts";
-import { fastFormatDate } from "@/utils/time";
 
 // 按需引入（推荐）
 // import echarts from 'echarts/lib/echarts'
@@ -46,7 +45,7 @@ export default {
 
   watch: {
     imageData: {
-      handler(newVal) {
+      handler() {
         if (this.chart) {
           this.updateData();
         }
@@ -255,7 +254,7 @@ export default {
           data: this.xAxisData
         },
         title: {
-          text: "当前雷达最新影像数据" + fastFormatDate(new Date(this.imageTime))
+          text: "当前雷达最新影像数据 " + this.imageTime
         }
       });
     }

@@ -1,8 +1,9 @@
 <template>
-  <LargeLineChart :image-data="chartData" :image-time="svrTime" @ImageIndexClick="onImageIndexClick" />
+  <LargeLineChart v-show="showChart" :image-data="imageData" :image-time="imageTime" @ImageIndexClick="onImageIndexClick" />
 </template>
 
 <script>
+import moment from "moment";
 import LargeLineChart from "./LargeLineChart.vue";
 import { getSysRadarImage } from "@/api/admin/sys-radar";
 
@@ -21,23 +22,24 @@ export default {
   data() {
     return {
       timerId: null,
-      chartData: [], // 你的2000条数据数组
-      svrTime: ""
+      imageData: [], // 你的2000条数据数组
+      imageTime: "", //服务器时间
+      showChart: false //显示报表
     };
   },
   watch: {
     radarid: {
       handler(newVal) {
         if (!newVal) return;
-        console.log("RadarImage.vue.radarid=", newVal);
+        this.showChart = !!newVal;
+        console.log("监听radarid变化:", newVal);
         this.getImageData(newVal);
-      },
-      immediate: true
+      }
     }
   },
   created() {
     // 生成示例数据（2000个随机数）
-    this.chartData = Array.from({ length: 200 }, () => Math.floor(Math.random() * 1000));
+    this.imageData = Array.from({ length: 200 }, () => Math.floor(Math.random() * 1000));
   },
   mounted() {
     console.log("RadarImage.mounted");
@@ -49,21 +51,24 @@ export default {
     }
   },
   methods: {
-    emitAddRadarPoint(index) {
-      this.$emit("sigAddRadarPoint", index);
-    },
     onImageIndexClick(data) {
-      console.log("onImageIndexClick", data);
-      this.emitAddRadarPoint(data);
+      console.log("点击影像点：", data);
+      this.$emit("addRadarPointEvent", data);
     },
     /** 查询参数列表 */
     async getImageData(radarid) {
-      //console.log('getImageData radarid=',radarid)
-      if (!radarid) return;
-      let resp = await getSysRadarImage(radarid);
-      console.log("获取雷达影像结果:", resp);
-      this.chartData = resp.data.Data;
-      this.svrTime = resp.data.SvrTime;
+      try {
+        if (!radarid) return;
+        console.log("请求获取影像信息：", radarid);
+        let resp = await getSysRadarImage(radarid);
+        let { Data, TimeStamp, RadarID } = resp.data;
+        console.log("获取雷达影像结果:", Data, TimeStamp, RadarID);
+        this.imageData = Data;
+        this.imageTime = moment(TimeStamp * 1000).format("YYYY-MM-DD HH时mm分ss秒");
+        this.showChart = true;
+      } catch (error) {
+        this.showChart = false;
+      }
     },
     startTimer() {
       let self = this;

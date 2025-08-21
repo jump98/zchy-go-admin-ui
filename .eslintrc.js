@@ -34,6 +34,8 @@ module.exports = {
       }
     ]
   }
+
+  // "no-unused-vars": "off" // 关闭此规则（不推荐）
   // add your custom rules here
   // it is base on https://github.com/vuejs/eslint-config-vue
   // rules: {

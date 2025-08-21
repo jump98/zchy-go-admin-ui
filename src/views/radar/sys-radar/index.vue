@@ -23,13 +23,13 @@
 
             <el-row :gutter="10" class="mb8">
               <el-col :span="1.5">
-                <el-button v-permisaction="['admin:sysRadar:add']" type="primary" icon="el-icon-plus" size="mini" @click="onClickAddRadarBtn"> 新增 </el-button>
+                <el-button v-permisaction="['radar:sysRadar:add']" type="primary" icon="el-icon-plus" size="mini" @click="onClickAddRadarBtn"> 新增 </el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-permisaction="['admin:sysRadar:edit']" type="success" icon="el-icon-edit" size="mini" :disabled="single" @click="onClickUpdateRadarBtn"> 修改 </el-button>
+                <el-button v-permisaction="['radar:sysRadar:edit']" type="success" icon="el-icon-edit" size="mini" :disabled="single" @click="onClickUpdateRadarBtn"> 修改 </el-button>
               </el-col>
               <el-col :span="1.5">
-                <el-button v-permisaction="['admin:sysRadar:remove']" type="danger" icon="el-icon-delete" size="mini" :disabled="multiple" @click="onClickDeleteRadarBtn"> 删除 </el-button>
+                <el-button v-permisaction="['radar:sysRadar:remove']" type="danger" icon="el-icon-delete" size="mini" :disabled="multiple" @click="onClickDeleteRadarBtn"> 删除 </el-button>
               </el-col>
             </el-row>
 
@@ -42,7 +42,7 @@
               <el-table-column label="特殊编号" prop="specialKey" width="108" />
               <el-table-column label="状态" width="80" sortable="custom">
                 <template slot-scope="scope">
-                  <el-switch v-model="scope.row.status" active-value="2" inactive-value="1" :disabled="!checkThisPermission(['admin:sysRadar:edit'])" @change="handleStatusChange(scope.row)" />
+                  <el-switch v-model="scope.row.status" active-value="2" inactive-value="1" :disabled="!checkThisPermission(['radar:sysRadar:edit'])" @change="handleStatusChange(scope.row)" />
                 </template>
               </el-table-column>
               <el-table-column label="创建时间" prop="createdAt" sortable="custom" width="155">
@@ -52,9 +52,9 @@
               </el-table-column>
               <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                 <template slot-scope="scope">
-                  <el-button slot="reference" v-permisaction="['admin:sysRadar:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
-                  <el-button slot="reference" v-permisaction="['admin:sysRadar:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
-                  <el-button v-if="scope.row.fromProject === 1" slot="reference" v-permisaction="['admin:sysRadar:edit']" size="mini" type="text" icon="el-icon-question" @click="handleConfirmProject(scope.row)"> 确认 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
+                  <el-button v-if="scope.row.fromProject === 1" slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="text" icon="el-icon-question" @click="handleConfirmProject(scope.row)"> 确认 </el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -166,7 +166,7 @@ export default {
     console.log("radar index.vue created");
     this.getList();
     this.getTreeselect();
-    // this.checkThisPermission(["admin:sysRadar:edit"]);
+    // this.checkThisPermission(["radar:sysRadar:edit"]);
   },
   methods: {
     /** 查询参数列表 */

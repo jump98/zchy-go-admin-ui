@@ -1,7 +1,7 @@
 <template>
   <BasicLayout>
     <template #wrapper>
-      <RadarImage v-if="checkThisPermission(['admin:radarPoint:edit'])" :radarid="radarid" @addRadarPointEvent="onClickRadarPointEvent" />
+      <RadarImage v-if="checkThisPermission(['radar:radarPoint:edit'])" :radarid="radarid" @addRadarPointEvent="onClickRadarPointEvent" />
       <el-divider>以下是当前的雷达的监测点列表</el-divider>
       <el-card class="box-card">
         <el-table v-loading="loading" :data="radarPointList" @selection-change="onSelectionChange">
@@ -40,8 +40,8 @@
           </el-table-column>
           <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
             <template slot-scope="scope">
-              <el-button slot="reference" v-permisaction="['admin:radarPoint:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateBtn(scope.row)"> 修改 </el-button>
-              <el-button slot="reference" v-permisaction="['admin:radarPoint:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteBtn(scope.row)"> 删除 </el-button>
+              <el-button slot="reference" v-permisaction="['radar:radarPoint:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateBtn(scope.row)"> 修改 </el-button>
+              <el-button slot="reference" v-permisaction="['radar:radarPoint:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteBtn(scope.row)"> 删除 </el-button>
             </template>
           </el-table-column>
         </el-table>

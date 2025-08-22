@@ -1,19 +1,22 @@
 <template>
   <div>
     <!-- 雷达列表和监测点列表 -->
-    <div v-show="radarList.length > 0" style="position: absolute; top: 94px; right: 0px; z-index: 10; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 5px; max-height: 80vh; overflow-y: auto; color: white">
-      <!-- 雷达列表 -->
-      <div>
+    <!-- <div
+      v-show="radarList.length > 0"
+      style="position: absolute; top: 94px; right: 0px; z-index: 10; background: rgba(0, 0, 0, 0.5); padding: 10px; border-radius: 5px; max-height: 80vh; overflow-y: auto; color: white"
+    > -->
+    <!-- 雷达列表 -->
+    <!-- <div>
         <h3>雷达列表</h3>
         <ul style="list-style: none; padding: 0; margin: 0">
           <li v-for="radar in radarList" :key="radar.radarId" :style="getRadarItemStyle(radar)" @click="selectRadar(radar)">
             {{ radar.radarName }}
           </li>
         </ul>
-      </div>
+      </div> -->
 
-      <!-- 监测点列表 -->
-      <div v-if="selectedRadar" style="margin-top: 10px">
+    <!-- 监测点列表 -->
+    <!-- <div v-if="selectedRadar" style="margin-top: 10px">
         <h3>监测点列表</h3>
         <ul v-if="filteredPoints.length > 0" style="list-style: none; padding: 0; margin: 0">
           <li
@@ -32,56 +35,67 @@
         </ul>
         <div v-else style="padding: 5px; color: white">该雷达没有监测点信息</div>
       </div>
-    </div>
+    </div> -->
 
-    <div class="deformationContainer" style="position: absolute; bottom: 0; right: 0; width: 100%; z-index: 8">
+    <!-- <div class="deformationContainer" style="position: absolute; bottom: 0; right: 0; width: 100%; z-index: 8">
       <DeformationLineChart v-show="timerIdForDeformationData != null" class="deformation" :image-data="chartData" :point-index="currentPointIndex" :radar-name="currentRadarName" />
       <div v-show="timerIdForDeformationData != null" style="display: flex; align-items: center; margin-bottom: 10px">
-        <label style="color: #fff">开始时间:</label>
+        <label style="color: #fff"> 开始时间: </label>
         <input v-model="startTime" type="datetime-local" style="margin-right: 20px" />
-        <label style="color: #fff">结束时间:</label>
+        <label style="color: #fff"> 结束时间: </label>
         <input v-model="endTime" type="datetime-local" style="margin-right: 20px" />
-        <!--button @click="updateChartData" style="padding: 5px 10px;">更新图表</button-->
       </div>
-    </div>
+    </div> -->
+
     <div id="map-container" ref="cesiumContainer" class="map" style="width: 100%">
       <div v-if="loading" class="loading-overlay">正在加载中，请稍候...</div>
-      <!-- 鼠标位置显示 -->
-      <div v-show="timerIdForDeformationData == null" class="mouse-position" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 5px 10px; border-radius: 3px; font-size: 12px; z-index: 100">
-        经度: {{ mousePosition.longitude.toFixed(6) }} 纬度:
-        {{ mousePosition.latitude.toFixed(6) }}
-      </div>
+      <div v-show="timerIdForDeformationData == null" class="mouse-position">位置： {{ mousePosition.longitude.toFixed(6) }} , {{ mousePosition.latitude.toFixed(6) }}</div>
+
+      <el-row>
+        <!-- <el-col :span="24"><div class="grid-content bg-purple-dark" /></el-col> -->
+        <el-button type="success">成功按钮</el-button>
+      </el-row>
     </div>
+
     <!-- 雷达告警对话框 -->
-    <RadarAlarmDialog :visible.sync="showAlarmDialog" :radar-info="selectedRadarForAlarm" />
+    <!-- <RadarAlarmDialog :visible.sync="showAlarmDialog" :radar-info="selectedRadarForAlarm" /> -->
+    <!-- 雷达信息弹出框 -->
+    <!-- <RadarItem :visible.sync="showRadarItemDialog" :radar-info="selectedRadarForAlarm" /> -->
   </div>
 </template>
 
 <script>
-//import Cesium from './Cesium/Cesium'
-//import './Cesium/Widgets/widgets.css'
-import { getRadarPointDeformData, listDeptRadarPoint } from "@/api/admin/radar-point";
-import { getRadarsAlarms, listSysRadar } from "@/api/admin/sys-radar";
-import loadjs from "loadjs";
+import { TCesiem } from "@/utils/tcesium/tcesium";
+import { getRadarPointDeformData, listDeptRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
+import { getRadarList } from "@/api/admin/sys-radar";
 import DeformationLineChart from "./radar/DeformationLineChart.vue";
 import RadarAlarmDialog from "./radar/RadarAlarmDialog.vue";
-
-window["Cesium"] = {};
+import RadarItem from "./radar/RadarItem.vue";
 
 const radarPrefix = "radar_";
 const radarPointPrefix = "radarpt_";
 const pointPrefix = "point_";
 const indexPrefix = "index_";
 
+// 引用public下面的Cesium.js
+const Cesium = window["Cesium"];
+
 export default {
   name: "Dashboard",
   components: {
     DeformationLineChart,
-    RadarAlarmDialog
+    RadarAlarmDialog,
+    RadarItem
   },
   data() {
     return {
-      loading: true,
+      loading: false,
+      // 雷达列表
+      radarList: [],
+      // 选中的雷达
+      radarRow: null,
+
+      //
       viewer: null,
       timerIdForRadar: null,
       timerIdForPoint: null,
@@ -95,7 +109,7 @@ export default {
       endTime: "2025-12-12 04:00:00",
       selectedRadarPoint: null,
       // 雷达和监测点列表相关数据
-      radarList: [],
+
       pointList: [],
       selectedRadar: null,
       selectedPoint: null,
@@ -107,76 +121,126 @@ export default {
       selectedRadarForAlarm: null, // 存储选中雷达的告警信息
       // 鼠标位置
       mousePosition: {
-        longitude: 0,
-        latitude: 0
-      }
+        longitude: 0, // 经度
+        latitude: 0 // 纬度
+      },
+      showRadarItemDialog: false // 控制雷达信息弹出框显示
     };
   },
   computed: {
     // 计算属性：过滤当前雷达的监测点
     filteredPoints() {
+      console.log("computed.filteredPoints.会掉用吗？");
       if (!this.selectedRadar) {
         return [];
       }
       return this.pointList.filter(point => point.radarId === this.selectedRadar.radarId);
     }
   },
+
+  // 页面创建时触发
   created() {
-    console.log("Dashboard created.");
+    this.init();
   },
-  mounted() {
-    // console.log("Cesium:", Cesium);
-    console.log("mounted.执行mountd:", process.env.BASE_URL);
-    // loadjs(["/Cesium/Cesium.js"], () => {
-    // 	// loadjs([process.env.BASE_URL + '/Cesium/Cesium.js'], () => {
-    // 	console.log("loadjs finished.");
-    // 	console.log("Cesium end:", Cesium);
-    // 	this.init();
-
-    // 	// 添加窗口大小变化事件监听器
-    // 	window.addEventListener("resize", () => {
-    // 		this.viewer.resize();
-    // 	});
-    // 	this.viewer.resize();
-
-    // 	// 添加鼠标移动事件监听器
-    // 	this.viewer.screenSpaceEventHandler.setInputAction(movement => {
-    // 		// 检查场景当前是否正在切换模式（例如2D/3D切换），避免在过渡状态中执行操作
-    // 		if (this.viewer.scene.mode !== Cesium.SceneMode.MORPHING) {
-    // 			console.log("鼠标"); // 调试信息，记录鼠标移动事件
-    // 			// 根据鼠标当前位置创建一条从相机穿过屏幕像素的射线
-    // 			const ray = this.viewer.camera.getPickRay(movement.endPosition);
-    // 			// 检测射线与地球表面的交点（地形/椭球体）
-    // 			const cartesian = this.viewer.scene.globe.pick(ray, this.viewer.scene);
-    // 			// 如果存在有效交点（即鼠标在地球表面上方）
-    // 			if (cartesian) {
-    // 				// 将笛卡尔坐标系坐标转换为地理坐标（经度/纬度/高度）
-    // 				const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
-    // 				// 更新当前位置数据（弧度转角度）
-    // 				this.mousePosition.longitude = Cesium.Math.toDegrees(cartographic.longitude);
-    // 				this.mousePosition.latitude = Cesium.Math.toDegrees(cartographic.latitude);
-    // 			}
-    // 		}
-    // 	}, Cesium.ScreenSpaceEventType.MOUSE_MOVE); // 指定监听的事件类型为鼠标移动
-    // });
-    // this.testGetRadarPointDeformData();
-  },
-
-  destroyed() {
-    console.error("destroyed");
-    // 停止告警雷达闪烁定时器
-    this.stopBlinkingTimer();
-  },
+  // 页面加载完成时触发
+  mounted() {},
+  // 页面再次激活时
   activated() {
-    console.error("Dashboard destroyed");
-    this.$nextTick(() => {
-      if (this.viewer) {
-        console.log("this.viewer.canvas=", this.viewer.canvas);
-        this.resizeCanvas();
-      }
-    });
+    console.error("Dashboard 页面再次激活时");
   },
+  // 页面隐藏时
+  deactivated() {
+    //  this.closeTimeout();
+  },
+
+  beforeDestroy() {
+    // 组件销毁前彻底停止轮询
+    console.log("RadarStateInfo beforeDestroy");
+    this.closeTimeout();
+  },
+  // 离开页面时触发
+  destroyed() {
+    console.log("RadarStateInfo destroyed");
+  },
+
   methods: {
+    // 初始化地图信息
+    async init() {
+      let resp = await getRadarList();
+      let { list } = resp.data;
+      console.log("雷达列表：", list);
+      this.radarList = list;
+      if (!list || list.length == 0) return;
+      this.radarRow = list[0];
+      let { lng, lat, radarId, radarKey, radarName } = this.radarRow;
+      let vec = {
+        x: lng || "104", // 经度
+        y: lat || "36.0" // 维度
+      };
+      this.loading = false;
+      this.viewer = await TCesiem.NewTCesium(this.$refs.cesiumContainer, vec);
+      if (this.viewer) {
+        console.log("Cesium 初始化完成");
+      }
+
+      TCesiem.AddRadarEntities(this.viewer, vec, radarKey, radarName);
+      this.addRadarPointList(radarId);
+
+      // 添加窗口大小变化事件监听器
+      window.addEventListener("resize", () => {
+        this.viewer.resize();
+      });
+      this.viewer.resize();
+      // 监听鼠标事件
+      this.onCesiumEventHandler();
+    },
+    // 添加雷达点位
+    async addRadarPointList() {
+      let { radarId } = this.radarRow;
+      let resp = await getRadarPointList({ radarId });
+      let { list: radarPointList } = resp.data;
+      console.log("点位列表：", radarPointList);
+      if (!this.viewer) return;
+      for (const item of radarPointList) {
+        let { lng, lat, pointKey, pointName } = item;
+        let vec = { x: lng, y: lat };
+        TCesiem.AddRadarPointEntities(this.viewer, vec, pointKey, pointName);
+      }
+      // 获取监控点数据
+    },
+
+    // 监听鼠标事件
+    onCesiumEventHandler() {
+      // 处理鼠标移动事件
+      TCesiem.OnMouseMoveEvent(this.viewer, position => {
+        this.mousePosition.longitude = position.longitude || ""; // 经度
+        this.mousePosition.latitude = position.latitude || ""; // 纬度
+        // console.log(`经度: ${position.longitude}, 纬度: ${position.latitude}`);
+      });
+
+      // 处理鼠标左键点击事件
+      TCesiem.OnMouseLifeClickEvent(this.viewer, pickedObject => {
+        if (Cesium.defined(pickedObject)) {
+          console.log("鼠标点击了:", pickedObject);
+
+          this.showRadarItemDialog = true;
+
+          // const cartesian = pickedObject.id.position.getValue(Cesium.JulianDate.now());
+          // const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+          // const longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6);
+          // const latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6);
+
+          // // 触发父组件事件，把信息传出去
+          // this.$emit("radar-click", {
+          //   name: pickedObject.id.name,
+          //   description: pickedObject.id.description,
+          //   longitude,
+          //   latitude
+          // });
+        }
+      });
+    },
+
     // 格式化时间，将本地时间转换为UTC时间
     formatDateTime(dateTime) {
       if (!dateTime) return "";
@@ -226,9 +290,9 @@ export default {
       this.viewer.resize(); // 确保调用 resize 方法来更新视图大小
     },
 
-    //TODO:测试：获取变形点数据
+    // TODO:测试：获取变形点数据
     async testGetRadarPointDeformData() {
-      let resp = await getRadarPointDeformData({
+      const resp = await getRadarPointDeformData({
         devid: 20,
         index: 3,
         startTime: this.formatDateTime(this.startTime),
@@ -239,10 +303,10 @@ export default {
 
     // 启动定时器获取雷达信息
     startRadarTimer() {
-      let that = this;
+      const that = this;
       this.timerIdForRadar = setTimeout(() => {
-        //console.log("Timer executed");
-        listSysRadar(
+        // console.log("Timer executed");
+        getRadarList(
           this.addDateRange({
             pageIndex: 1,
             pageSize: 1000,
@@ -257,7 +321,7 @@ export default {
             console.log("listSysRadar res=", res);
             that.updateRadars(res.data.list);
 
-            //成功获取雷达信息后再获取监测点
+            // 成功获取雷达信息后再获取监测点
             that.startPointTimer();
             that.startAlarmsTimer();
             that.startDeformationTimer();
@@ -270,10 +334,10 @@ export default {
     },
     // 启动定时器获取监测点信息
     startPointTimer() {
-      let that = this;
+      const that = this;
       this.timerIdForPoint = setTimeout(() => {
-        //console.log("Timer executed");
-        let radarids = this.radarList.map(item => item.radarId);
+        // console.log("Timer executed");
+        const radarids = this.radarList.map(item => item.radarId);
         listDeptRadarPoint()
           .then(res => {
             console.log("listDeptRadarPoint res=", res);
@@ -287,7 +351,7 @@ export default {
     },
     // 启动定时器获取告警信息
     startAlarmsTimer() {
-      //TODO:关闭定时查询
+      // TODO:关闭定时查询
       // let that = this;
       // this.timerIdForAlarms = setTimeout(() => {
       // 	//console.log("Timer executed");
@@ -314,9 +378,9 @@ export default {
     },
     // 启动变形数据定时器
     startDeformationTimer() {
-      let that = this;
+      const that = this;
       this.timerIdForDeformation = setTimeout(() => {
-        //console.log("Timer executed");
+        // console.log("Timer executed");
         // listDeptRadarPointDeformationData().then(res=>{
         //     console.log('listDeptRadarPointDeformationData res=',res)
         //   })
@@ -362,7 +426,7 @@ export default {
       if (this.timerIdForDeformationData) {
         clearInterval(this.timerIdForDeformationData);
       }
-      let that = this;
+      const that = this;
       // 启动新的定时器，每秒调用一次
       this.timerIdForDeformationData = setInterval(() => {
         that.updateChartData();
@@ -371,7 +435,7 @@ export default {
 
     // 更新图表数据的方法
     updateChartData() {
-      let that = this;
+      const that = this;
       // 检查是否有当前的ids对象
       if (this.currentIds) {
         // 调用getRadarPointDeformData函数并传递选择的时间参数
@@ -385,11 +449,11 @@ export default {
             console.log("getRadarPointDeformData res=", res);
             if (res.code === 200 && res.data && res.data.length > 0) {
               // 处理数据并更新图表
-              let chartData = res.data.map(item => ({
+              const chartData = res.data.map(item => ({
                 SvrTime: new Date(item.SvrTime).getTime(),
                 Deformation: item.Deformation
               }));
-              //console.log('chartData=', chartData);
+              // console.log('chartData=', chartData);
               // 更新DeformationLineChart组件的数据
               that.chartData = chartData;
             } else {
@@ -443,7 +507,7 @@ export default {
     // 获取雷达实体
     getRadarEntity(radarId) {
       if (!this.viewer) return;
-      let entid = this.getRadarEntityID(radarId);
+      const entid = this.getRadarEntityID(radarId);
       return this.viewer.entities.getById(entid);
     },
 
@@ -521,11 +585,11 @@ export default {
 
       // 创建新的雷达监测点实体
       points.forEach(p => {
-        let entid = this.getRadarPointEntityID(p.radarId, p.id, p.pointIndex);
-        let rEntity = this.getEntityById(entid);
+        const entid = this.getRadarPointEntityID(p.radarId, p.id, p.pointIndex);
+        const rEntity = this.getEntityById(entid);
         if (!rEntity) {
           // 添加带 ID 和名称的圆点
-          let entity = this.viewer.entities.add({
+          const entity = this.viewer.entities.add({
             id: entid, // 唯一标识符（程序内使用）
             name: p.pointName, // 可读名称（界面或日志中显示）
             position: Cesium.Cartesian3.fromDegrees(p.lng, p.lat),
@@ -551,11 +615,11 @@ export default {
                     <b>RadarID</b>: ${p.radarId}
                 `
           });
-          let that = this;
+          const that = this;
           // 为实体添加点击事件监听器
           // 使用立即执行函数来保存ptEnt的值
           this.viewer.screenSpaceEventHandler.setInputAction(function (click) {
-            let pickedObject = that.viewer.scene.pick(click.position);
+            const pickedObject = that.viewer.scene.pick(click.position);
             console.log("点击了:pickedObject=", pickedObject);
             if (!pickedObject || !pickedObject.id || !pickedObject.id._id) {
               that.stopUpdateChartData();
@@ -564,7 +628,7 @@ export default {
               return;
             }
             console.log("点击了:", pickedObject, pickedObject.id._id);
-            let entIds = that.getRadarIDFromPointEntityID(pickedObject.id._id);
+            const entIds = that.getRadarIDFromPointEntityID(pickedObject.id._id);
             if (Cesium.defined(pickedObject) && entIds) {
               console.log("点击了监测点:", entIds.radarId, entIds.id, entIds.index);
               that.selectedRadarPoint = pickedObject;
@@ -583,14 +647,14 @@ export default {
             }
           }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-          let rEntity = this.getRadarEntity(p.radarId);
+          const rEntity = this.getRadarEntity(p.radarId);
           if (rEntity) {
-            //在雷达和监测点之间画一条线
+            // 在雷达和监测点之间画一条线
             var line = this.viewer.entities.add({
               polyline: {
                 positions: [rEntity.position.getValue(), entity.position.getValue()], // 起点和终点坐标
                 width: 1, // 线宽（像素）
-                //material: Cesium.Color.YELLOW, // 线颜色
+                // material: Cesium.Color.YELLOW, // 线颜色
                 clampToGround: true, // 是否贴地（3D 模式下有效）
                 material: new Cesium.PolylineDashMaterialProperty({
                   color: Cesium.Color.YELLOW,
@@ -654,246 +718,51 @@ export default {
         radarId: point.radarId,
         index: point.pointIndex
       });
-    },
-
-    // 初始化地图信息
-    init() {
-      this.loading = false;
-      /*this.viewer = new Cesium.Viewer(this.$refs.cesiumContainer, {//"map-container", {
-        homeButton: false,
-        sceneModePicker: false,
-        baseLayerPicker: false, // 影像切换
-        animation: true, // 是否显示动画控件
-        infoBox: false, // 是否显示点击要素之后显示的信息
-        selectionIndicator: false, // 要素选中框
-        geocoder: false, // 是否显示地名查找控件
-        timeline: false, // 是否显示时间线控件
-        fullscreenButton: false,
-        shouldAnimate: false,
-        navigationHelpButton: false, // 是否显示帮助信息控件
-      });
-      this.loading = false
-      this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      // 将三维球定位到中国
-      this.viewer.camera.flyTo({
-          destination: Cesium.Cartesian3.fromDegrees(103.84, 31.15, 17850000),
-          orientation: {
-              heading :  Cesium.Math.toRadians(348.4202942851978),
-              pitch : Cesium.Math.toRadians(-89.74026687972041),
-              roll : Cesium.Math.toRadians(0)
-          },
-          complete:function callback() {
-              // 定位完成之后的回调函数
-          }
-      });
-
-      const TIANDITUKEY='b1682a1c63ee43a89bde5ef76566fbcd'
-      // 天地图服务URL
-      const tdtUrl = "http://t0.tianditu.gov.cn/img_c/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk="+TIANDITUKEY;
-      
-      // 创建天地图影像图层
-      const tdtImagery = new Cesium.WebMapTileServiceImageryProvider({
-        url: tdtUrl,
-        layer: "tdtAnnoLayer", // 注意：tdtAnnoLayer是天地图注记图层，如果不需要注记请使用img_w，否则请申请注记图层的key
-        style: "default",
-        format: "image/jpeg",
-        tileMatrixSetID: "GoogleMapsCompatible",
-        subdomains: ["t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"],
-        // 请求的时候附带的token
-        token: TIANDITUKEY
-      });
-      
-      // 将天地图影像添加到Cesium Viewer中
-      this.viewer.imageryLayers.addImageryProvider(tdtImagery);
-      */
-      let token = "0cc50ce75e61b135d4639a8068f8a7b7";
-      // 服务域名
-      let tdtUrl = "https://t{s}.tianditu.gov.cn/";
-      // 服务负载子域
-      let subdomains = ["0", "1", "2", "3", "4", "5", "6", "7"];
-
-      // cesium 初始化
-      this.viewer = new Cesium.Viewer(this.$refs.cesiumContainer, {
-        sceneMode: Cesium.SceneMode.SCENE2D, // 关键参数：强制使用二维模式
-        animation: false,
-        shouldAnimate: false, //是否允许动画
-        selectionIndicator: false,
-        baseLayerPicker: false,
-        fullscreenButton: false,
-        geocoder: false,
-        homeButton: false,
-        infoBox: false,
-        sceneModePicker: false,
-        timeline: false,
-        navigationHelpButton: false,
-        navigationInstructionsInitiallyVisible: false,
-        showRenderLoopErrors: false,
-        shadows: false
-      });
-      this.viewer._cesiumWidget._creditContainer.style.display = "none";
-      this.viewer.cesiumWidget.creditContainer.style.display = "none";
-      // 获取所有的图层
-      let imageryLayers = this.viewer.imageryLayers;
-      // 假设你知道你想要删除的图层的索引或者图层的名称
-      console.log("imageLayers。。。");
-      let layers = imageryLayers._layers;
-      // 例如，通过名称删除图层
-      for (var i = layers.length - 1; i >= 0; i--) {
-        imageryLayers.remove(layers[i]);
-      }
-
-      // 抗锯齿
-      this.viewer.scene.fxaa = true;
-      this.viewer.scene.postProcessStages.fxaa.enabled = false;
-      // 水雾特效
-      //this.viewer.scene.globe.showGroundAtmosphere = true;
-      // 设置最大俯仰角，[-90,0]区间内，默认为-30，单位弧度
-      this.viewer.scene.screenSpaceCameraController.constrainedPitch = Cesium.Math.toRadians(-20);
-      this.viewer.scene.screenSpaceCameraController.autoResetHeadingPitch = false;
-      this.viewer.scene.screenSpaceCameraController.inertiaZoom = 0.5;
-      this.viewer.scene.screenSpaceCameraController.minimumZoomDistance = 50;
-      this.viewer.scene.screenSpaceCameraController.maximumZoomDistance = 20000000;
-      this.viewer.scene.screenSpaceCameraController.zoomEventTypes = [Cesium.CameraEventType.RIGHT_DRAG, Cesium.CameraEventType.WHEEL, Cesium.CameraEventType.PINCH];
-      this.viewer.scene.screenSpaceCameraController.tiltEventTypes = [
-        Cesium.CameraEventType.MIDDLE_DRAG,
-        Cesium.CameraEventType.PINCH,
-        {
-          eventType: Cesium.CameraEventType.LEFT_DRAG,
-          modifier: Cesium.KeyboardEventModifier.CTRL
-        },
-        {
-          eventType: Cesium.CameraEventType.RIGHT_DRAG,
-          modifier: Cesium.KeyboardEventModifier.CTRL
-        }
-      ];
-      // 取消默认的双击事件
-      //this.viewer.cesiumWidget.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
-
-      // 叠加影像服务
-      var imgMap = new Cesium.UrlTemplateImageryProvider({
-        url: tdtUrl + "DataServer?T=img_w&x={x}&y={y}&l={z}&tk=" + token,
-        subdomains: subdomains,
-        tilingScheme: new Cesium.WebMercatorTilingScheme(),
-        maximumLevel: 18
-      });
-      this.viewer.imageryLayers.addImageryProvider(imgMap);
-
-      // 叠加国界服务
-      var iboMap = new Cesium.UrlTemplateImageryProvider({
-        url: tdtUrl + "DataServer?T=ibo_w&x={x}&y={y}&l={z}&tk=" + token,
-        subdomains: subdomains,
-        tilingScheme: new Cesium.WebMercatorTilingScheme(),
-        maximumLevel: 10
-      });
-      this.viewer.imageryLayers.addImageryProvider(iboMap);
-      /*
-    // 叠加地形服务
-    var terrainUrls = new Array();
-
-    for (var i = 0; i < subdomains.length; i++){
-        var url = tdtUrl.replace('{s}', subdomains[i]) + 'mapservice/swdx?T=elv_c&tk=' + token;
-        terrainUrls.push(url);
-    }
-
-    var provider = new Cesium.GeoTerrainProvider({
-        urls: terrainUrls
-    });
-
-    this.viewer.terrainProvider = provider;*/
-
-      let that = this;
-      // 将三维球定位到中国
-      this.viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(103.84, 31.15, 17850000),
-        orientation: {
-          heading: Cesium.Math.toRadians(0),
-          pitch: Cesium.Math.toRadians(-90),
-          roll: Cesium.Math.toRadians(0)
-        },
-
-        complete: function callback() {
-          // 定位完成之后的回调函数
-        }
-      });
-
-      //设置定时器
-      setTimeout(e => {
-        this.startRadarTimer();
-        that.resizeCanvas();
-      }, 100);
-
-      /*
-    // 叠加三维地名服务
-    var wtfs = new Cesium.GeoWTFS({
-        this.viewer,
-        //三维地名服务，使用wtfs服务
-        subdomains:subdomains,
-        metadata:{
-            boundBox: {
-                minX: -180,
-                minY: -90,
-                maxX: 180,
-                maxY: 90
-            },
-            minLevel: 1,
-            maxLevel: 20
-        },
-        depthTestOptimization: true,
-        dTOElevation: 15000,
-        dTOPitch: Cesium.Math.toRadians(-70),
-        aotuCollide: true, //是否开启避让
-        collisionPadding: [5, 10, 8, 5], //开启避让时，标注碰撞增加内边距，上、右、下、左
-        serverFirstStyle: true, //服务端样式优先
-        labelGraphics: {
-            font:"28px sans-serif",
-            fontSize: 28,
-            fillColor:Cesium.Color.WHITE,
-            scale: 0.5,
-            outlineColor:Cesium.Color.BLACK,
-            outlineWidth: 2,
-            style:Cesium.LabelStyle.FILL_AND_OUTLINE,
-            showBackground:false,
-            backgroundColor:Cesium.Color.RED,
-            backgroundPadding:new Cesium.Cartesian2(10, 10),
-            horizontalOrigin:Cesium.HorizontalOrigin.LEFT,
-            verticalOrigin:Cesium.VerticalOrigin.TOP,
-            eyeOffset:Cesium.Cartesian3.ZERO,
-            pixelOffset: new Cesium.Cartesian2(5, 5),
-            disableDepthTestDistance:undefined
-        },
-        billboardGraphics: {
-            horizontalOrigin:Cesium.HorizontalOrigin.CENTER,
-            verticalOrigin:Cesium.VerticalOrigin.CENTER,
-            eyeOffset:Cesium.Cartesian3.ZERO,
-            pixelOffset:Cesium.Cartesian2.ZERO,
-            alignedAxis:Cesium.Cartesian3.ZERO,
-            color:Cesium.Color.WHITE,
-            rotation:0,
-            scale:1,
-            width:18,
-            height:18,
-            disableDepthTestDistance:undefined
-        }
-    });
-
-    //三维地名服务，使用wtfs服务
-    wtfs.getTileUrl = function(){
-        return tdtUrl + 'mapservice/GetTiles?lxys={z},{x},{y}&VERSION=1.0.0&tk='+ token; 
-    }
-
-    // 三维图标服务
-    wtfs.getIcoUrl = function(){
-        return tdtUrl + 'mapservice/GetIcon?id={id}&tk='+ token;
-    }
-
-    wtfs.initTDT([{"x":6,"y":1,"level":2,"boundBox":{"minX":90,"minY":0,"maxX":135,"maxY":45}},{"x":7,"y":1,"level":2,"boundBox":{"minX":135,"minY":0,"maxX":180,"maxY":45}},{"x":6,"y":0,"level":2,"boundBox":{"minX":90,"minY":45,"maxX":135,"maxY":90}},{"x":7,"y":0,"level":2,"boundBox":{"minX":135,"minY":45,"maxX":180,"maxY":90}},{"x":5,"y":1,"level":2,"boundBox":{"minX":45,"minY":0,"maxX":90,"maxY":45}},{"x":4,"y":1,"level":2,"boundBox":{"minX":0,"minY":0,"maxX":45,"maxY":45}},{"x":5,"y":0,"level":2,"boundBox":{"minX":45,"minY":45,"maxX":90,"maxY":90}},{"x":4,"y":0,"level":2,"boundBox":{"minX":0,"minY":45,"maxX":45,"maxY":90}},{"x":6,"y":2,"level":2,"boundBox":{"minX":90,"minY":-45,"maxX":135,"maxY":0}},{"x":6,"y":3,"level":2,"boundBox":{"minX":90,"minY":-90,"maxX":135,"maxY":-45}},{"x":7,"y":2,"level":2,"boundBox":{"minX":135,"minY":-45,"maxX":180,"maxY":0}},{"x":5,"y":2,"level":2,"boundBox":{"minX":45,"minY":-45,"maxX":90,"maxY":0}},{"x":4,"y":2,"level":2,"boundBox":{"minX":0,"minY":-45,"maxX":45,"maxY":0}},{"x":3,"y":1,"level":2,"boundBox":{"minX":-45,"minY":0,"maxX":0,"maxY":45}},{"x":3,"y":0,"level":2,"boundBox":{"minX":-45,"minY":45,"maxX":0,"maxY":90}},{"x":2,"y":0,"level":2,"boundBox":{"minX":-90,"minY":45,"maxX":-45,"maxY":90}},{"x":0,"y":1,"level":2,"boundBox":{"minX":-180,"minY":0,"maxX":-135,"maxY":45}},{"x":1,"y":0,"level":2,"boundBox":{"minX":-135,"minY":45,"maxX":-90,"maxY":90}},{"x":0,"y":0,"level":2,"boundBox":{"minX":-180,"minY":45,"maxX":-135,"maxY":90}}]);
-    */
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
+.el-row {
+  margin-bottom: 20px;
+  // &:last-child {
+  //   margin-bottom: 0;
+  // }
+}
+// .el-col {
+//   border-radius: 4px;
+// }
+// .bg-purple-dark {
+//   background: #99a9bf;
+// }
+// .bg-purple {
+//   background: #d3dce6;
+// }
+// .bg-purple-light {
+//   background: #e5e9f2;
+// }
+// .grid-content {
+//   border-radius: 4px;
+//   min-height: 36px;
+// }
+// .row-bg {
+//   padding: 10px 0;
+//   background-color: #f9fafc;
+// }
+
+.mouse-position {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  z-index: 100;
+}
+
 /* 修复input 背景不协调 和光标变色 */
 /* Detail see https://github.com/PanJiaChen/vue-element-admin/pull/927 */
 
@@ -919,6 +788,7 @@ $cursor: #fff;
   width: 100vw;
   //height: calc((100vh - 93px)/4);
 }
+
 .deformation {
   height: calc((100vh - 93px) / 4);
 }

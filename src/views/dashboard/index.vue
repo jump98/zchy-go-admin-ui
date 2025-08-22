@@ -5,7 +5,7 @@
       <div v-if="loading" class="loading-overlay">正在加载中，请稍候...</div>
 
       <!-- 鼠标位置（固定左下角） -->
-      <div v-show="timerIdForDeformationData == null" class="mouse-position">位置： {{ mousePos.x.toFixed(6) }} , {{ mousePos.y.toFixed(6) }}</div>
+      <div class="mouse-position">位置： {{ mousePos.x.toFixed(6) }} , {{ mousePos.y.toFixed(6) }}</div>
       <!-- <div class="mouse-position">位置： {{ mousePos.x.toFixed(6) }} , {{ mousePos.y.toFixed(6) }}</div> -->
 
       <!-- 左上角按钮工具栏 -->
@@ -17,32 +17,35 @@
           <el-option v-for="item in radarNames" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </div>
-
+      <!-- 雷达信息弹窗-->
       <RadarItemDialog :visible.sync="showRadarItemDialog" :radar-info="clickRadarRow" />
+      <!-- 监控点信息弹窗-->
+      <DeformationLineChart :visible.sync="showDeformationLineChart" :radar-info="radarRow" :radar-point-info="clickRadarPointRow" />
+      <!-- <RadarAlarmDialog :visible.sync="showRadarAlarmDialog" :radar-info="clickRadarRow" /> -->
     </div>
   </div>
 </template>
 
 <script>
-import { RadarTag, TCesiem } from "@/utils/tcesium/tcesium";
-import { getRadarPointDeformData, listDeptRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
+import { RadarPointTag, RadarTag, TCesiem } from "@/utils/tcesium/tcesium";
+import { getRadarPointList } from "@/api/admin/radar-point";
 import { getRadarList } from "@/api/admin/sys-radar";
 import DeformationLineChart from "./radar/DeformationLineChart.vue";
-import RadarAlarmDialog from "./radar/RadarAlarmDialog.vue";
 import RadarItemDialog from "./radar/RadarItemDialog.vue";
 
 // 引用public下面的Cesium.js
-// const Cesium = window["Cesium"];
+const Cesium = window["Cesium"];
 
 export default {
   name: "Dashboard",
   components: {
     DeformationLineChart,
-    RadarAlarmDialog,
     RadarItemDialog
   },
   data() {
     return {
+      // 事件
+      handler: null,
       loading: true,
       // 雷达列表
       radarList: [],
@@ -50,54 +53,37 @@ export default {
       radarRow: null,
       // 点击的雷达
       clickRadarRow: null,
+      // 点击的雷达点位
+      clickRadarPointRow: null,
       radarNames: [],
       inputRadarName: "",
-
-      //
       viewer: null,
-      timerIdForRadar: null,
-      timerIdForPoint: null,
-      timerIdForDeformation: null,
-      timerIdForDeformationData: null,
-      timerIdForBlinking: null, // 告警闪烁定时器
-      chartData: [],
-      currentPointIndex: null,
-      currentRadarName: "",
-      startTime: "2025-01-10 04:00:00",
-      endTime: "2025-12-12 04:00:00",
-      selectedRadarPoint: null,
       // 雷达和监测点列表相关数据
-
       pointList: [],
-      selectedRadar: null,
-      selectedPoint: null,
-      // 告警相关数据
-      alarmRadarIds: new Set(), // 存储有告警的雷达ID
-      blinkState: false, // 闪烁状态
-      // 告警对话框相关
-      showAlarmDialog: false, // 控制告警对话框显示
-      selectedRadarForAlarm: null, // 存储选中雷达的告警信息
       // 鼠标位置
       mousePos: {
         x: 0, // 经度
         y: 0 // 纬度
       },
-      showRadarItemDialog: false // 控制雷达信息弹出框显示
+      showRadarItemDialog: false, // 控制雷达信息弹出框显示
+      showRadarAlarmDialog: false, // 控制雷达报警信息弹窗
+      showDeformationLineChart: false // 控制雷达点位弹出框显示
     };
   },
   computed: {
     // 计算属性：过滤当前雷达的监测点
-    filteredPoints() {
-      console.log("computed.filteredPoints.会掉用吗？");
-      if (!this.selectedRadar) {
-        return [];
-      }
-      return this.pointList.filter(point => point.radarId === this.selectedRadar.radarId);
-    }
+    // filteredPoints() {
+    //   console.log("computed.filteredPoints.会掉用吗？");
+    //   if (!this.selectedRadar) {
+    //     return [];
+    //   }
+    //   return this.pointList.filter(point => point.radarId === this.selectedRadar.radarId);
+    // }
   },
 
   // 页面创建时触发
   created() {
+    console.log("Dashboard页面创建时触发");
     this.init();
   },
   // 页面加载完成时触发
@@ -105,6 +91,7 @@ export default {
   // 页面再次激活时
   activated() {
     console.error("Dashboard 页面再次激活时");
+    // this.init();
   },
   // 页面隐藏时
   deactivated() {
@@ -114,83 +101,107 @@ export default {
   beforeDestroy() {
     // 组件销毁前彻底停止轮询
     console.log("RadarStateInfo beforeDestroy");
-    // this.closeTimeout();
+    this.viewDestroy();
   },
   // 离开页面时触发
   destroyed() {
     console.log("RadarStateInfo destroyed");
+    this.viewDestroy();
   },
 
   methods: {
     // 初始化地图信息
     async init() {
+      this.loading = true;
+      console.log("初始化地图信息");
+      // 获取雷达列表
       let resp = await getRadarList();
       let { list } = resp.data;
       console.log("雷达列表：", list);
       this.radarList = list;
-      if (!list || list.length == 0) return;
-      let { lng, lat, radarId } = list[0]; // 或者是最后一次选择雷达的位置
-      let pos = { x: lng, y: lat };
-      try {
-        this.viewer = await TCesiem.NewTCesium(this.$refs.cesiumContainer, pos);
+      if (!list || list.length === 0) {
         this.loading = false;
-      } catch (err) {
-        console.error("初始化Cesium失败:", err);
         return;
       }
 
-      // 初始化下拉框
-      this.initRadarNames(list);
-      // 显示雷达点位信息
-      this.showRadarEntities(radarId);
+      let { lng, lat, radarId } = list[0];
+      let pos = { x: lng, y: lat };
 
-      // 添加窗口大小变化事件监听器
-      // window.addEventListener("resize", () => {
-      //   this.viewer.resize();
-      // });
-      // this.viewer.resize();
-      // 监听鼠标事件
-      this.onCesiumEventHandler();
+      try {
+        // 创建 Cesium viewer
+        this.viewer = await TCesiem.NewTCesium(this.$refs.cesiumContainer, pos);
+        this.loading = false;
+
+        // 绑定鼠标事件，保证在 viewer 初始化后执行
+        this.onCesiumEventHandler();
+
+        // 初始化下拉框
+        this.initRadarNames(list);
+
+        // 显示雷达点位
+        await this.showRadarEntities(radarId);
+
+        // 添加窗口大小变化事件监听器
+        window.addEventListener("resize", this.handleResize);
+      } catch (err) {
+        console.error("初始化Cesium失败:", err);
+      }
+    },
+    // 销毁 viewer 和事件监听器
+    viewDestroy() {
+      console.log("销毁 Cesium 实例及事件监听器");
+      if (this.handler && !this.handler.isDestroyed()) {
+        this.handler.destroy();
+        this.handler = null;
+      }
+      if (this.viewer && !this.viewer.isDestroyed()) {
+        this.viewer.entities.removeAll();
+        this.viewer.destroy();
+        this.viewer = null;
+      }
+
+      // 移除窗口大小监听
+      window.removeEventListener("resize", this.handleResize);
     },
 
-    // 添加雷达点位
-    async addRadarPointList() {
-      let { radarId } = this.radarRow;
-      let resp = await getRadarPointList({ radarId });
-      let { list: radarPointList } = resp.data;
-      console.log("点位列表：", radarPointList);
-      if (!this.viewer) return;
-      for (const item of radarPointList) {
-        let { lng, lat, pointKey, pointName } = item;
-        let pos = { x: lng, y: lat };
-        TCesiem.AddRadarPointEntities(this.viewer, pos, pointKey, pointName);
+    // 窗口大小变化回调
+    handleResize() {
+      if (this.viewer) {
+        this.viewer.resize();
       }
-      // 获取监控点数据
     },
 
     // 监听鼠标事件
     onCesiumEventHandler() {
-      // 处理鼠标移动事件
-      TCesiem.OnMouseMoveEvent(this.viewer, position => {
-        this.mousePos = position;
-      });
+      if (!this.viewer) return;
 
-      // 处理鼠标左键点击事件
-      TCesiem.OnMouseLifeClickEvent(this.viewer, callback => {
-        console.log("鼠标点击了:", callback);
-        let { id, tag, pos } = callback;
-        console.log("id:", id);
-        // 飞到指定位置
-        TCesiem.FlyToPos(this.viewer, 0.5, pos, () => {
-          // console.log("飞完回调");
-          // 雷达设备
-          if (tag === RadarTag) {
-            this.clickRadarRow = this.radarList.find(item => item.radarKey === id);
-            console.log("this.clickRadarRow:", this.clickRadarRow);
-            this.showRadarItemDialog = true;
-          }
+      try {
+        this.handler = new Cesium.ScreenSpaceEventHandler(this.viewer.scene.canvas);
+
+        // 鼠标移动事件
+        TCesiem.OnMouseMoveEvent(this.viewer, this.handler, position => {
+          this.mousePos = position;
         });
-      });
+
+        // 鼠标左键点击事件
+        TCesiem.OnMouseLifeClickEvent(this.viewer, this.handler, callback => {
+          console.log("点击实物:", callback);
+          let { id, tag, pos } = callback;
+
+          TCesiem.FlyToPos(this.viewer, 0.5, pos, () => {
+            if (tag === RadarTag) {
+              this.clickRadarRow = this.radarList.find(item => item.radarKey === id);
+              this.showRadarItemDialog = true;
+            }
+            if (tag === RadarPointTag) {
+              this.clickRadarPointRow = this.radarPointList.find(item => item.pointKey === id);
+              this.showDeformationLineChart = true;
+            }
+          });
+        });
+      } catch (error) {
+        console.error("绑定鼠标事件失败:", error);
+      }
     },
 
     // 显示雷达点位
@@ -209,7 +220,8 @@ export default {
 
       // 添加雷达点位
       let resp = await getRadarPointList({ radarId });
-      let { list: radarPointList } = resp.data;
+      let radarPointList = resp.data.list;
+      this.radarPointList = radarPointList;
       console.log("点位列表：", radarPointList);
       if (!this.viewer || radarPointList.length == 0 || radarPointList[0].radarId != radarId) return;
       for (const item of radarPointList) {
@@ -232,13 +244,14 @@ export default {
         let { radarKey, radarId } = item;
         this.radarNames.push({ value: radarId, label: radarKey });
       }
-      console.log("radarNames:", this.radarNames);
       this.inputRadarName = this.radarNames[0].value;
     },
 
     // 点击刷新按钮
-    onClickRefreshBtn() {
+    async onClickRefreshBtn() {
       console.log("点击刷新按钮");
+      this.viewDestroy();
+      await this.init();
     },
     // 下拉框change
     onChangeEvent(value) {

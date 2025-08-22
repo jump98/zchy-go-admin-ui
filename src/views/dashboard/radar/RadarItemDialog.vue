@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-dialog v-bind="$attrs" :title="title" width="70%" :close-on-click-modal="false" custom-class="my-radar-dialog" @open="onOpen" @close="onClose">
+    <el-dialog v-bind="$attrs" :title="title" width="70%" :close-on-click-modal="false" @open="onOpen" @close="onClose">
       <el-descriptions v-if="radarInfo && deviceInfo" :column="4" title="雷达设备信息" direction="horizontal" border>
         <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item>
         <el-descriptions-item label="设备名称">{{ radarInfo.radarName }}</el-descriptions-item>
@@ -18,8 +18,7 @@
         <el-descriptions-item label="经度">{{ radarInfo.lng }}</el-descriptions-item>
         <el-descriptions-item label="纬度">{{ radarInfo.lat }}</el-descriptions-item>
         <el-descriptions-item label="高程">{{ radarInfo.alt }}</el-descriptions-item>
-        <el-descriptions-item label="备注" :span="4" />
-        <!-- <el-descriptions-item label="备注">{{ radarInfo.remark }}</el-descriptions-item> -->
+        <el-descriptions-item label="备注">{{ radarInfo.remark }}</el-descriptions-item>
       </el-descriptions>
 
       <!-- <el-divider /> -->

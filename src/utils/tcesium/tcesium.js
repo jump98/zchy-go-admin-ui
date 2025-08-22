@@ -22,8 +22,6 @@ export const RadarPointTag = "point-"; // 雷达点实体tag
 let Cesium = window["Cesium"];
 
 class tCesiem {
-  eventHandler; // 事件handler
-
   /**
    * 创建天地图（2D 平面）
    * @param {*} dom m 容器 DOM
@@ -216,9 +214,7 @@ class tCesiem {
    * @param {*} callback
    * @returns
    */
-  OnMouseMoveEvent(viewer, callback) {
-    // 创建事件处理器
-    const handler = this.getHandler(viewer);
+  OnMouseMoveEvent(viewer, handler, callback) {
     // 监听鼠标移动
     handler.setInputAction(movement => {
       // 使用 pickEllipsoid 保证即使没地形/模型也能获取经纬度
@@ -233,7 +229,7 @@ class tCesiem {
       }
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
 
-    return handler;
+    return;
 
     // 监听滚轮
     //  Cesium.ScreenSpaceEventType.WHEEL
@@ -245,13 +241,13 @@ class tCesiem {
    * @param {*} callback
    * @returns
    */
-  OnMouseLifeClickEvent(viewer, callback) {
-    // 创建事件处理器
-    const handler = this.getHandler(viewer);
+  OnMouseLifeClickEvent(viewer, handler, callback) {
     // 监听鼠标移动
     handler.setInputAction(movement => {
       const pickedObject = viewer.scene.pick(movement.position); // 获取点击的实体
+      console.log("点击实物：", pickedObject);
       if (Cesium.defined(pickedObject) && pickedObject.id) {
+        console.log("确保不弹窗");
         viewer.selectedEntity = undefined; // 确保不弹窗
         const cartesian = viewer.scene.pickPosition(movement.position);
         let pos = {};
@@ -266,7 +262,7 @@ class tCesiem {
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-    return handler; // 返回 handler 方便销毁
+    return;
   }
 
   // 获得eventHandler

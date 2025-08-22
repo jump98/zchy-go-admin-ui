@@ -32,7 +32,9 @@ module.exports = {
           component: "always" // Vue 组件必须自闭合，如 <MyComponent />
         }
       }
-    ]
+    ],
+    // 强制注释符号后有空格
+    "spaced-comment": ["error", "always"]
   }
 
   // "no-unused-vars": "off" // 关闭此规则（不推荐）

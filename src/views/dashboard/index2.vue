@@ -70,7 +70,7 @@ import { getRadarPointDeformData, listDeptRadarPoint, getRadarPointList } from "
 import { getRadarList } from "@/api/admin/sys-radar";
 import DeformationLineChart from "./radar/DeformationLineChart.vue";
 import RadarAlarmDialog from "./radar/RadarAlarmDialog.vue";
-import RadarItem from "./radar/RadarItem.vue";
+import RadarItem from "./radar/RadarItemDialog.vue";
 
 const radarPrefix = "radar_";
 const radarPointPrefix = "radarpt_";

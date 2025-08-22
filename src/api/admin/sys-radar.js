@@ -1,8 +1,8 @@
 import request from "@/utils/request";
 
 // 查询SysRadar列表
-export function listSysRadar(query) {
-  console.log("listSysRadar.query:", query);
+export function getRadarList(query) {
+  console.log("getRadarList.query:", query);
   return request({
     url: "/api/v1/sys-radar",
     method: "get",

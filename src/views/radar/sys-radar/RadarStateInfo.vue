@@ -31,7 +31,7 @@ export default {
   },
   data() {
     return {
-      timerId: null, //定时器id
+      timerId: null, // 定时器id
       stateInfo: {}
     };
   },
@@ -70,23 +70,23 @@ export default {
     console.log("RadarStateInfo destroyed");
   },
   methods: {
-    //获取雷达状态信息
+    // 获取雷达状态信息
     async getStateInfo() {
       if (!this.radarid) return;
       try {
         let resp = await getRadarStateInfo({ radarId: this.radarid });
         console.log("获取雷达状态信息:", resp);
         this.stateInfo = resp.data || {};
-        this.timerId = setTimeout(() => this.getStateInfo(), 30000); //30秒轮询
+        this.timerId = setTimeout(() => this.getStateInfo(), 30000); // 30秒轮询
       } catch (error) {
         console.error("获取雷达状态信息失败:", error);
         this.stateInfo = {};
-        //后续可以根据失败的次数，来设置timeout的时间间隔
+        // 后续可以根据失败的次数，来设置timeout的时间间隔
         this.closeTimeout();
       }
     },
 
-    //关闭定时器
+    // 关闭定时器
     closeTimeout() {
       if (this.timerId) {
         clearTimeout(this.timerId);

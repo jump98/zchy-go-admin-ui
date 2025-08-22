@@ -18,12 +18,19 @@
               {{ radarIdFormat(scope.row) }}
             </template>
           </el-table-column>
-          <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" /> <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column
+          <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" />
+          <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column
             label="距离"
             align="center"
             prop="distance"
             :show-overflow-tooltip="true"
-          /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
+          /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column
+            label="激活状态"
+            align="center"
+            prop="aStatus"
+            :formatter="aStatusFormat"
+            width="100"
+          >
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
             </template>
@@ -67,9 +74,9 @@
 </template>
 
 <script>
-import { delRadarPoint, listRadarPoint } from "@/api/admin/radar-point";
+import { delRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
 
-import { listSysRadar } from "@/api/admin/sys-radar";
+import { getRadarList } from "@/api/admin/sys-radar";
 import RadarImage from "./RadarImage.vue";
 import PointEditDialog from "./PointEditDialog.vue";
 import { checkPermission } from "@/utils/permission";
@@ -99,15 +106,15 @@ export default {
       total: 0,
       // 是否显示弹出层
       openDialog: false,
-      //弹窗action
-      dialogAction: 0, //1=修改 2=增加
+      // 弹窗action
+      dialogAction: 0, // 1=修改 2=增加
       // 类型数据字典
       typeOptions: [],
-      //雷达点位信息列表
+      // 雷达点位信息列表
       radarPointList: [],
-      //检测点类型
+      // 检测点类型
       pointTypeOptions: [],
-      //激活状态
+      // 激活状态
       aStatusOptions: [],
       xStatusOptions: [],
       mTypeIdOptions: [],
@@ -128,7 +135,7 @@ export default {
     };
   },
 
-  ///
+  // /
   watch: {
     radarid: {
       handler(newVal) {
@@ -166,7 +173,7 @@ export default {
       if (!radarid) return;
       this.loading = true;
       this.queryParams.radarId = radarid;
-      let resp = await listRadarPoint(this.addDateRange(this.queryParams, this.dateRange));
+      let resp = await getRadarPointList(this.addDateRange(this.queryParams, this.dateRange));
       let { list, count } = resp.data;
       this.radarPointList = list;
       this.total = count;
@@ -188,15 +195,16 @@ export default {
       return this.selectDictLabel(this.mTypeIdOptions, row.mTypeId);
     },
     // 获得关系表数据
+    // TODO: 需要优化
     getSysRadarItems() {
       console.log("getSysRadarItems");
-      this.getItems(listSysRadar, undefined).then(res => {
+      this.getItems(getRadarList, undefined).then(res => {
         console.log("获得关系表数据.getItems:", res);
         this.radarIdOptions = this.setItems(res, "radarId", "radarName");
         console.log("获得关系表数据:", this.radarIdOptions);
       });
     },
-    //点击点事件
+    // 点击点事件
     onClickRadarPointEvent(data) {
       console.log("新增点位：", data);
       this.radarPointRow = { pointIndex: data.index };
@@ -217,7 +225,7 @@ export default {
       this.openDialog = true;
       this.dialogAction = 1;
     },
-    //添加点成功事件
+    // 添加点成功事件
     onAddRadarPointSuccesEvent(data) {
       console.log("添加点成功事件:", data);
       this.radarPointList.push(data);

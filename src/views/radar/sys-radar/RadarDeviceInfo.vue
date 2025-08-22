@@ -5,7 +5,7 @@
     <p><strong>时间戳:</strong> {{ deviceInfo.timestamp }}</p>
     <p><strong>命令码:</strong> {{ deviceInfo.command_code }}</p>
     <p><strong>逻辑程序版本:</strong> {{ deviceInfo.fpga_version }}</p>
-    <p><strong>ARM程序版本:</strong> {{ deviceInfo.ps_version }}</p>
+    <p><strong>ARM固定版本:</strong> {{ deviceInfo.ps_version }}</p>
     <p><strong>系统镜像版本:</strong> {{ deviceInfo.image_version }}</p>
     <p><strong>生产序列号:</strong> {{ deviceInfo.serial_number }}</p>
     <p><strong>SIM卡IMEI号:</strong> {{ deviceInfo.sim_IMEI }}</p>

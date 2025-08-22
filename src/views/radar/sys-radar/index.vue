@@ -94,7 +94,7 @@
 </template>
 
 <script>
-import { delSysRadar, listSysRadar, updateSysRadar } from "@/api/admin/sys-radar";
+import { delSysRadar, getRadarList, updateSysRadar } from "@/api/admin/sys-radar";
 
 import { treeselect } from "@/api/admin/sys-dept";
 
@@ -172,7 +172,7 @@ export default {
     /** 查询参数列表 */
     async getList() {
       this.loading = true;
-      let response = await listSysRadar(this.addDateRange(this.queryParams, this.dateRange));
+      let response = await getRadarList(this.addDateRange(this.queryParams, this.dateRange));
       console.log("获得雷达设备列表:", response);
       this.sysRadarList = response.data.list;
       this.total = response.data.count;

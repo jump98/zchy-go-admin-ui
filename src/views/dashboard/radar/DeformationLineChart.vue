@@ -1,12 +1,34 @@
 <template>
   <el-dialog v-bind="$attrs" :title="title" width="80%" :close-on-click-modal="false" @open="onOpen" @close="onClose">
-    <div class="chart-container">
-      <!-- 折线图容器 -->
-      <div ref="lineChart" style="width: 100%; height: 100%" />
+    <el-form :inline="true">
+      <el-form-item label="查询时间">
+        <el-date-picker
+          v-model="inputDate"
+          type="datetimerange"
+          format="yyyy-MM-dd HH:mm:ss"
+          value-format="yyyy-MM-dd HH:mm:ss"
+          :picker-options="pickerOptions"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          align="right"
+          @change="onChangeTimeEvent"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" icon="el-icon-search" size="mini" @click="onClickQueryBtn">搜索</el-button>
+      </el-form-item>
+    </el-form>
 
-      <!-- 数据更新演示按钮 >
+    <el-row>
+      <div class="chart-container">
+        <!-- 折线图容器 -->
+        <div ref="lineChart" style="width: 100%; height: 400px" />
+      </div>
+    </el-row>
+
+    <!-- 数据更新演示按钮 >
     <button @click="updateData">更新数据</button-->
-    </div>
   </el-dialog>
 </template>
 
@@ -14,6 +36,7 @@
 import { getRadarPointDeformData } from "@/api/admin/radar-point";
 // 完整引入方式
 import echarts from "echarts";
+import moment from "moment";
 // 按需引入（推荐）
 // import echarts from 'echarts/lib/echarts'
 // import 'echarts/lib/chart/line'
@@ -38,11 +61,60 @@ export default {
       imageData: [],
       title: "",
       chart: null,
-      startTime: "2025-01-10 04:00:00",
-      endTime: "2025-12-12 04:00:00",
       xAxisData: [],
       seriesData: [{ name: "形变值", data: [] }],
-      currentMark: null // 当前标记区域缓存
+      currentMark: null, // 当前标记区域缓存
+      pickerOptions: {
+        shortcuts: [
+          {
+            text: "今天",
+            onClick(picker) {
+              const start = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
+              const end = moment().format("YYYY-MM-DD HH:mm:ss");
+              console.log("end:", end);
+              console.log("start:", start);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "昨天",
+            onClick(picker) {
+              const start = moment().subtract(1, "days").startOf("day").format("YYYY-MM-DD HH:mm:ss");
+              const end = moment().subtract(1, "days").endOf("day").format("YYYY-MM-DD HH:mm:ss");
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "最近一周",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+              console.log("end:", end);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "最近一个月",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+              picker.$emit("pick", [start, end]);
+            }
+          },
+          {
+            text: "最近三个月",
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+              picker.$emit("pick", [start, end]);
+            }
+          }
+        ]
+      },
+      inputDate: [new Date()]
     };
   },
 
@@ -116,6 +188,10 @@ export default {
       let { pointName } = this.radarPointInfo;
       this.title = `${radarName} - 监测点: ${pointName}`;
 
+      let startTime = moment().subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
+      let endTime = moment().format("YYYY-MM-DD HH:mm:ss");
+      this.inputDate = [startTime, endTime];
+      console.log(" this.inputDate :", this.inputDate);
       try {
         await this.getRadarPointDeformData();
         this.initChart();
@@ -139,9 +215,10 @@ export default {
       let param = {
         devid: radarId,
         index: pointIndex,
-        startTime: this.formatDateTime(this.startTime),
-        endTime: this.formatDateTime(this.endTime)
+        startTime: this.inputDate[0],
+        endTime: this.inputDate[1]
       };
+      console.log("param:", param);
       let resp = await getRadarPointDeformData(param);
       if (resp.code === 200 && resp.data && resp.data.length > 0) {
         // 处理数据并更新图表
@@ -155,20 +232,14 @@ export default {
         this.imageData = [];
       }
     },
-    // 格式化时间，将本地时间转换为UTC时间
-    formatDateTime(dateTime) {
-      if (!dateTime) return "";
-      // 如果包含T，说明是datetime-local的值，需要转换为Date对象
-      if (dateTime.includes("T")) {
-        // 先将datetime-local的值转换为本地时间的Date对象
-        const localDate = new Date(dateTime.replace("T", " ") + ":00");
-        // 转换为UTC时间字符串
-        return localDate.toISOString().slice(0, 19).replace("T", " ");
-      } else {
-        // 如果已经是标准格式，直接转换为UTC时间
-        const localDate = new Date(dateTime);
-        return localDate.toISOString().slice(0, 19).replace("T", " ");
-      }
+
+    // 选择日期：
+    onChangeTimeEvent() {},
+    async onClickQueryBtn() {
+      console.log("点击查询");
+      console.log("inputDate:", this.inputDate);
+      await this.getRadarPointDeformData();
+      this.initChart();
     },
 
     // 初始化图表

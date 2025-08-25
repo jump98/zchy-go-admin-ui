@@ -1,24 +1,20 @@
 <template>
-  <div class="chart-container">
+  <div class="myChart-container">
     <!-- 折线图容器 -->
     <div ref="lineChart" style="width: 100%; height: 400px" />
-
-    <!-- 数据更新演示按钮 >
-    <button @click="updateData">更新数据</button-->
   </div>
 </template>
 
 <script>
-// 完整引入方式
-import echarts from "echarts";
+// 按需引入（推荐，体积更小）
+// 按需引入 ECharts 5
+import * as echarts from "echarts/core";
+import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent } from "echarts/components";
+import { LineChart } from "echarts/charts";
+import { UniversalTransition } from "echarts/features";
+import { CanvasRenderer } from "echarts/renderers";
 
-// 按需引入（推荐）
-// import echarts from 'echarts/lib/echarts'
-// import 'echarts/lib/chart/line'
-// import 'echarts/lib/component/title'
-// import 'echarts/lib/component/tooltip'
-// import 'echarts/lib/component/grid'
-// import 'echarts/lib/component/legend'
+echarts.use([TooltipComponent, GridComponent, TitleComponent, LegendComponent, DataZoomComponent, LineChart, CanvasRenderer, UniversalTransition]);
 
 export default {
   name: "LargeLineChart",
@@ -34,60 +30,57 @@ export default {
       default: ""
     }
   },
+
   data() {
     return {
-      chart: null,
-      xAxisData: Array.from({ length: 2000 }, (_, i) => i),
-      seriesData: [{ name: "距离值", data: Array.from({ length: 2000 }, (_, i) => i) }],
-      currentMark: null // 当前标记区域缓存
+      myChart: null,
+      xAxisData: [],
+      // seriesData: [{ name: "距离值", data: [] }],
+      currentIndex: null // 当前标记区域缓存
     };
   },
 
   watch: {
-    imageData: {
-      handler() {
-        if (this.chart) {
-          this.updateData();
-        }
-      },
-      deep: true
-    },
-    // 深度监听数据变化
-    seriesData: {
-      handler(newVal) {
-        if (this.chart) {
-          this.chart.setOption({
-            series: newVal.map(item => ({
-              name: item.name,
-              data: item.data
-            }))
-          });
-        }
-      },
-      deep: true
+    imageTime(newVal) {
+      console.log("服务器时间：", newVal);
+      this.refreshData();
     }
   },
 
   mounted() {
+    console.log("myChart.mounted:", this.imageData);
     this.initChart();
     window.addEventListener("resize", this.handleResize);
   },
 
   beforeDestroy() {
-    window.removeEventListener("resize", this.handleResize);
-    if (this.chart) {
-      this.chart.off("click", this.handleChartClick);
-      this.chart.dispose();
-      this.chart = null;
-    }
+    console.log("LargeLineChart.beforeDestroy");
+    this.removeChart();
   },
 
   methods: {
-    // 初始化图表
-    initChart() {
-      this.chart = echarts.init(this.$refs.lineChart);
+    /** 刷新图表数据 */
+    refreshData() {
+      if (this.myChart) {
+        this.updateData();
+      }
+    },
 
-      const option = {
+    /** 销毁图表 */
+    removeChart() {
+      window.removeEventListener("resize", this.handleResize);
+      if (this.myChart) {
+        this.myChart.off("updateAxisPointer", this.handleUpdatePointer);
+        this.myChart.getZr().off("click", this.handleZrClick);
+        this.myChart.dispose();
+        this.myChart = null;
+      }
+    },
+
+    /** 初始化图表 */
+    initChart() {
+      // 文档： https://echarts.apache.org/zh/option.html#series-line
+      let option = {
         animation: false,
         title: {
           text: "当前雷达最新影像数据",
@@ -95,105 +88,80 @@ export default {
         },
         tooltip: {
           trigger: "axis",
-          axisPointer: {
-            type: "shadow"
+          axisPointer: { type: "cross" }
+        },
+        legend: {},
+        xAxis: [
+          {
+            type: "category",
+            data: [],
+            axisLabel: { rotate: 45 },
+            name: "监测点"
           }
-        },
-        // legend: {
-        //   data: this.seriesData.map(item => item.name),
-        //   top: 30
-        // },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "3%",
-          containLabel: true
-        },
-        xAxis: {
-          type: "category",
-          data: this.xAxisData,
-          axisLabel: {
-            rotate: 45
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "信号",
+            position: "left",
+            axisLabel: {
+              formatter: "{value}"
+            }
           }
-        },
-        yAxis: {
-          type: "value"
-        },
-        series: this.seriesData.map(item => ({
-          name: item.name,
-          type: "line",
-          data: item.data,
-          smooth: false,
-          large: true,
-          sampling: "lttb",
-          areaStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: "rgba(64, 158, 255, 0.4)" },
-              { offset: 1, color: "rgba(64, 158, 255, 0.01)" }
-            ])
-          },
-          markPoint: {
-            symbol: "rect",
-            symbolSize: [5, 10],
-            itemStyle: {
-              color: "rgba(255, 0, 0, 0.3)",
-              borderWidth: 0
-            },
-            label: { show: false },
-            data: [
-              {
-                coord: [500, 200],
-                symbolOffset: [0, 0] // 确保中心点对齐
-              }
-            ]
-          },
-          markArea: {
-            silent: false, // 不触发事件
-            itemStyle: {
-              color: "rgba(255,165,0,0.1)",
-              borderWidth: 1,
-              borderColor: "#FFA500"
-            },
+        ],
+        series: [
+          {
+            name: "雷达距离像数据", // 系列名称，用于tooltip的显示
+            type: "line", // 折线图
+            // smooth: true, // 是否平滑线显示
+            yAxisIndex: 0,
+            sampling: "lttb", // 降采样
             data: []
           }
-        })),
+        ],
+        // 缩放
         dataZoom: [
           {
-            type: "inside",
+            type: "inside", // 内置型，支持鼠标滚轮缩放
+            xAxisIndex: 0, // 作用在第一个x轴
+            start: 0, // 初始显示范围起始百分比
+            end: 100 // 初始显示范围结束百分比
+          },
+          {
+            type: "slider", // 外部滑动条，也可选择显示
+            xAxisIndex: 0,
             start: 0,
-            end: 100,
-            // 解决缩放时的索引计算问题
-            filterMode: "none"
+            end: 100
           }
         ]
       };
 
-      this.chart.setOption(option);
+      this.myChart = echarts.init(this.$refs.lineChart);
+      this.myChart.setOption(option);
       this.bindClickEvent();
     },
 
-    emitImageIndexClick(index) {
-      this.$emit("ImageIndexClick", { index: index });
-    },
     bindClickEvent() {
-      this.chart.off("click");
-      this.chart.on("click", params => {
-        console.log("click", params);
-        if (params.componentType === "series") {
-          if (params.componentSubType === "line") {
-            this.handleXAxisClick(params);
-          }
-        } else if (params.componentType === "markArea") {
-          this.emitImageIndexClick(params.data.centerIndex);
-        }
-        //if (params.componentType === 'xAxis') {
-        //this.handleXAxisClick(params)
-        //}
-      });
+      this.myChart.on("updateAxisPointer", this.handleUpdatePointer);
+      this.myChart.getZr().on("click", this.handleZrClick);
     },
+    handleUpdatePointer(event) {
+      if (event.axesInfo && event.axesInfo.length > 0) {
+        const axisInfo = event.axesInfo[0];
+        const xData = this.myChart.getOption().xAxis[0].data;
+        this.currentIndex = xData.indexOf(axisInfo.value);
+      }
+    },
+    handleZrClick() {
+      if (this.currentIndex != null) {
+        console.log("点击点位:", this.currentIndex);
+        this.$emit("ImageIndexClick", { index: this.currentIndex });
+      }
+    },
+
+    /** 更新标记区域 */
     updateMarkArea() {
-      console.log("updateMarkArea", this.currentMark);
-      this.chart.setOption({
+      this.myChart.setOption({
         series: [
           {
             markArea: {
@@ -204,86 +172,48 @@ export default {
         ]
       });
     },
-    handleXAxisClick(params) {
-      console.log("handleXAxisClick", params);
-      const xIndex = params.dataIndex; // 获取点击的原始索引值
-      const startIdx = Math.max(0, xIndex - 2);
-      const endIdx = Math.min(this.xAxisData.length - 1, xIndex + 2);
 
-      // 获取Y轴范围
-      // 获取当前Y轴的最大值（图表顶部的值）
-      const option = this.chart.getOption();
-      const yAxis = option.yAxis[0];
-      // 如果Y轴设置了max值，使用它；否则获取当前视图中Y轴的实际最大值
-      const yMax = yAxis.max || (yAxis.scale ? Math.max(...this.seriesData[0].data) : this.chart.getModel().getComponent("yAxis", 0).axis.scale.getExtent()[1]);
-      const yValue = yMax;
-      const yStart = 0;
-      const yEnd = yValue + 10;
-
-      this.currentMark = [
-        {
-          centerIndex: xIndex,
-          xAxis: startIdx,
-          yAxis: yStart,
-          itemStyle: { color: "#ffff00" } // 隐藏起点标记
-        },
-        {
-          xAxis: endIdx,
-          yAxis: yEnd,
-          itemStyle: { color: "#ffff00" } // 隐藏终点标记
-        }
-      ];
-
-      this.updateMarkArea();
-    },
-    // 处理窗口大小变化
+    /** 窗口大小变化 */
     handleResize() {
-      this.chart?.resize();
+      this.myChart?.resize();
     },
 
-    // 模拟数据更新
+    /** 更新数据 */
     updateData() {
       this.handleResize();
-      this.seriesData = this.seriesData.map(series => ({
-        ...series,
-        data: this.imageData //.map(() => Math.floor(Math.random() * 300))
-      }));
-      this.xAxisData = this.imageData.map((_, index) => index); // 修改点2：动态更新索引
-      this.chart.setOption({
-        xAxis: {
-          data: this.xAxisData
+      // const MAX_POINTS = 12000; // 限制最大点数
+      // const latestData = this.imageData.slice(-MAX_POINTS);
+
+      // 距离像信号强度数据
+      let data = this.imageData;
+      // let data = Array.from({ length: 10000 }, () => Math.floor(Math.random() * 10000) + 1);
+      // 下标点位
+      let xAxisData = data.map((_, i) => i);
+      // console.log("xAxisData:", xAxisData);
+
+      // let series = [50, 100, 200, 400];
+      // console.log("距离像信号强度数据:", data);
+      this.myChart.setOption(
+        {
+          xAxis: { data: xAxisData },
+          series: [{ data: data }],
+          title: { text: "当前雷达最新影像数据 " + this.imageTime }
         },
-        title: {
-          text: "当前雷达最新影像数据 " + this.imageTime
-        }
-      });
+        false,
+        false
+      ); // 不合并、不动画
     }
   }
 };
 </script>
 
 <style scoped>
-.chart-container {
-  width: 100wh;
-  margin: 0px auto;
-  padding: 0px;
+/* .myChart-container {
+  width: 100%;
+  margin: 0;
+  padding: 0;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-}
-
-button {
-  margin-top: 20px;
-  padding: 8px 16px;
-  background: #409eff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #66b1ff;
-}
+} */
 </style>

@@ -18,7 +18,7 @@
         </el-select>
       </div>
       <!-- 雷达信息弹窗-->
-      <RadarItemDialog :visible.sync="showRadarItemDialog" :radar-info="clickRadarRow" />
+      <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="clickRadarRow" />
       <!-- 监控点信息弹窗-->
       <DeformationLineChart :visible.sync="showDeformationLineChart" :radar-info="radarRow" :radar-point-info="clickRadarPointRow" />
       <!-- <RadarAlarmDialog :visible.sync="showRadarAlarmDialog" :radar-info="clickRadarRow" /> -->
@@ -65,7 +65,7 @@ export default {
         x: 0, // 经度
         y: 0 // 纬度
       },
-      showRadarItemDialog: false, // 控制雷达信息弹出框显示
+      openRadarItemDialog: false, // 控制雷达信息弹出框显示
       showRadarAlarmDialog: false, // 控制雷达报警信息弹窗
       showDeformationLineChart: false // 控制雷达点位弹出框显示
     };
@@ -191,7 +191,7 @@ export default {
           TCesiem.FlyToPos(this.viewer, 0.5, pos, () => {
             if (tag === RadarTag) {
               this.clickRadarRow = this.radarList.find(item => item.radarKey === id);
-              this.showRadarItemDialog = true;
+              this.openRadarItemDialog = true;
             }
             if (tag === RadarPointTag) {
               this.clickRadarPointRow = this.radarPointList.find(item => item.pointKey === id);

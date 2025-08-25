@@ -50,11 +50,22 @@
                   <span>{{ parseTime(scope.row.createdAt) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+              <el-table-column label="操作" align="center">
                 <template slot-scope="scope">
-                  <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
-                  <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
-                  <el-button v-if="scope.row.fromProject === 1" slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="text" icon="el-icon-question" @click="handleConfirmProject(scope.row)"> 确认 </el-button>
+                  <el-button slot="reference" size="mini" type="primary" @click="onClickDetailRadarBtn(scope.row)"> 详细 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="success" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="danger" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
+                  <!-- <el-button
+                    v-if="scope.row.fromProject === 1"
+                    slot="reference"
+                    v-permisaction="['radar:sysRadar:edit']"
+                    size="mini"
+                    type="text"
+                    icon="el-icon-question"
+                    @click="handleConfirmProject(scope.row)"
+                  >
+                    确认
+                  </el-button> -->
                 </template>
               </el-table-column>
             </el-table>
@@ -62,31 +73,32 @@
             <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageIndex" :limit.sync="queryParams.pageSize" @pagination="getList" />
 
             <!-- 添加或修改对话框 -->
-            <RadarEditDialog :visible.sync="openDialog" :radar-info="radarRow" :action="dialogAction" :dept-options="deptOptions" @addRadar="onAddRadarEvent" />
+            <RadarEditDialog :visible.sync="openEditDialog" :radar-info="radarRow" :action="dialogAction" :dept-options="deptOptions" @addRadar="onAddRadarEvent" />
           </el-col>
         </el-row>
+
+        <!-- 雷达信息弹窗-->
+        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarRow" />
 
         <el-row style="margin-top: 20px">
           <!-- 显示点位信息  -->
           <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radarid="curradarid" />
 
-          <el-col>
+          <!-- <el-col>
             <div v-show="curradarid != 0" class="radar-components-row">
               <div class="radar-component">
                 <h3>当前所选雷达的设备及状态信息如下：</h3>
               </div>
             </div>
             <div class="radar-components-row">
-              <!-- 显示雷达设备状态  -->
               <div class="radar-component">
                 <RadarStateInfo v-show="curradarid != 0" :radarid="curradarid" />
               </div>
-              <!-- 显示雷达设备信息  -->
               <div class="radar-component">
                 <RadarDeviceInfo v-show="curradarid != 0" :radarid="curradarid" />
               </div>
             </div>
-          </el-col>
+          </el-col> -->
         </el-row>
       </el-card>
     </template>
@@ -101,17 +113,16 @@ import { treeselect } from "@/api/admin/sys-dept";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 import RadarPoint from "../radar-point/index.vue";
-import RadarDeviceInfo from "./RadarDeviceInfo.vue";
 import RadarEditDialog from "./RadarEditDialog.vue";
-import RadarStateInfo from "./RadarStateInfo.vue";
 import { checkPermission } from "@/utils/permission";
+import RadarItemDialog from "../../dashboard/radar/RadarItemDialog.vue";
 
 export default {
   name: "SysRadar",
-  components: { RadarPoint, RadarDeviceInfo, RadarStateInfo, RadarEditDialog },
+  components: { RadarPoint, RadarItemDialog, RadarEditDialog },
   data() {
     return {
-      //当前的雷达ID
+      // 当前的雷达ID
       curradarid: 0,
       // 遮罩层
       loading: true,
@@ -123,13 +134,15 @@ export default {
       multiple: true,
       // 总条数
       total: 0,
-      //弹窗action
-      dialogAction: 0, //1=修改 2=增加
+      // 弹窗action
+      dialogAction: 0, // 1=修改 2=增加
       // 是否显示弹出层
-      openDialog: false,
+      openEditDialog: false,
+      // 是否显示弹出层
+      openRadarItemDialog: false,
       // 类型数据字典
       typeOptions: [],
-      //系统雷达列表
+      // 系统雷达列表
       sysRadarList: [],
 
       // 机构名称
@@ -222,11 +235,11 @@ export default {
       this.handleQuery();
     },
 
-    //点击新增雷达
+    // 点击新增雷达
     onClickAddRadarBtn() {
       // this.reset();
       this.getTreeselect();
-      this.openDialog = true;
+      this.openEditDialog = true;
       this.dialogAction = 2;
       this.radarRow = {
         // radarId: 0,
@@ -246,11 +259,17 @@ export default {
       // console.log("点击修改:", row);
       if (!row.radarId) return;
       this.radarRow = row;
-      this.openDialog = true;
+      this.openEditDialog = true;
       this.dialogAction = 1;
     },
 
-    //添加雷达事件
+    async onClickDetailRadarBtn(row) {
+      console.log("row:", row);
+      this.radarRow = row;
+      this.openRadarItemDialog = true;
+    },
+
+    // 添加雷达事件
     onAddRadarEvent(row) {
       // console.log("添加雷达事件.row:", row);
       this.sysRadarList.push(row);
@@ -264,7 +283,7 @@ export default {
       this.multiple = !selection.length;
     },
 
-    //当表格的当前行发生变化的时候会触发该事件
+    // 当表格的当前行发生变化的时候会触发该事件
     onHandleCurrentChange(currentRow) {
       console.log("当表格的当前行发生变化的时候会触发该事件");
       if (currentRow) {
@@ -277,7 +296,7 @@ export default {
       }
     },
 
-    //确定按钮
+    // 确定按钮
     handleConfirmProject(row) {
       let self = this;
       this.$confirm('要确认"' + row.radarName + '"雷达吗?', "警告", {
@@ -319,7 +338,7 @@ export default {
         .then(response => {
           if (response.code === 200) {
             this.msgSuccess(response.msg);
-            this.openDialog = false;
+            this.openEditDialog = false;
             this.getList();
           } else {
             this.msgError(response.msg);

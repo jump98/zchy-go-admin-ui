@@ -5,7 +5,7 @@
         <el-input v-model="radarInfo.radarName" placeholder="雷达名称" />
       </el-form-item>
       <el-form-item label="雷达编号" prop="radarKey">
-        <el-input v-model="radarInfo.radarKey" placeholder="雷达编号" />
+        <el-input v-model="radarInfo.radarKey" :disabled="action == 1" placeholder="雷达编号" />
       </el-form-item>
       <el-form-item label="雷达特殊编号" prop="specialKey">
         <el-input v-model="radarInfo.specialKey" placeholder="雷达特殊编号" />
@@ -67,7 +67,7 @@ export default {
     },
     action: {
       type: Number,
-      default: 1 //动作：1修改 2增加
+      default: 1 // 动作：1修改 2增加
     }
   },
   data() {
@@ -82,7 +82,7 @@ export default {
         lng: [
           {
             required: true,
-            //此处的'formValidation'不可随着:model改变而改变，因为formValidations.js已经定义好的，全局使用
+            // 此处的'formValidation'不可随着:model改变而改变，因为formValidations.js已经定义好的，全局使用
             validator: formValidation.validatorLongitude,
             message: "经度范围：-180~180（保留小数点后七位）",
             trigger: "change"
@@ -113,11 +113,11 @@ export default {
       console.log("this.radarInfo:", this.radarInfo);
     },
 
-    //提交按钮
+    // 提交按钮
     async onClickSubmitFormBtn() {
       this.$refs["form"].validate(valid => {
         if (valid) {
-          //修改
+          // 修改
           if (this.action == 1) {
             updateSysRadar(this.radarInfo).then(response => {
               if (response.code === 200) {
@@ -127,7 +127,7 @@ export default {
               }
             });
           }
-          //新增
+          // 新增
           if (this.action == 2) {
             addSysRadar(this.radarInfo).then(response => {
               if (response.code === 200) {
@@ -146,7 +146,7 @@ export default {
         }
       });
     },
-    //取消按钮
+    // 取消按钮
     onClickCancelBtn() {
       this.close();
     },

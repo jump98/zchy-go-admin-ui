@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-bind="$attrs" :title="title" width="80%" :close-on-click-modal="false" @open="onOpen" @close="onClose">
+  <el-dialog v-bind="$attrs" :title="title" width="80%" :close-on-click-modal="false" @opened="onOpen" @close="onClose">
     <el-form :inline="true">
       <el-form-item label="查询时间">
         <el-date-picker
@@ -21,7 +21,7 @@
     </el-form>
 
     <el-row>
-      <div class="chart-container">
+      <div class="myChart-container">
         <!-- 折线图容器 -->
         <div ref="lineChart" style="width: 100%; height: 400px" />
       </div>
@@ -34,16 +34,16 @@
 
 <script>
 import { getRadarPointDeformData } from "@/api/admin/radar-point";
-// 完整引入方式
-import echarts from "echarts";
 import moment from "moment";
-// 按需引入（推荐）
-// import echarts from 'echarts/lib/echarts'
-// import 'echarts/lib/chart/line'
-// import 'echarts/lib/component/title'
-// import 'echarts/lib/component/tooltip'
-// import 'echarts/lib/component/grid'
-// import 'echarts/lib/component/legend'
+// 按需引入（推荐，体积更小）
+// 按需引入 ECharts 5
+import * as echarts from "echarts/core";
+import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent } from "echarts/components";
+import { LineChart } from "echarts/charts";
+import { UniversalTransition } from "echarts/features";
+import { CanvasRenderer } from "echarts/renderers";
+
+echarts.use([TooltipComponent, GridComponent, TitleComponent, LegendComponent, DataZoomComponent, LineChart, CanvasRenderer, UniversalTransition]);
 
 export default {
   props: {
@@ -60,10 +60,9 @@ export default {
     return {
       imageData: [],
       title: "",
-      chart: null,
+      myChart: null,
+      timers: [], // 统一管理定时器
       xAxisData: [],
-      seriesData: [{ name: "形变值", data: [] }],
-      currentMark: null, // 当前标记区域缓存
       pickerOptions: {
         shortcuts: [
           {
@@ -117,84 +116,32 @@ export default {
       inputDate: [new Date()]
     };
   },
-
-  watch: {
-    // imageData: {
-    //   handler(newVal) {
-    //     if (this.chart) {
-    //       this.handleResize();
-    //       // 更新xAxis和series的数据
-    //       this.chart.setOption({
-    //         title: {
-    //           text: this.radarName + " - 监测点: " + this.pointIndex
-    //         },
-    //         xAxis: {
-    //           data: newVal ? newVal.map(item => new Date(item.SvrTime).toLocaleTimeString()) : []
-    //         },
-    //         series: [
-    //           {
-    //             type: "line",
-    //             data: newVal ? newVal.map(item => item.Deformation) : []
-    //           }
-    //         ]
-    //       });
-    //     }
-    //   },
-    //   deep: true
-    // },
-    // pointIndex: {
-    //   handler(newVal) {
-    //     if (this.chart) {
-    //       this.chart.setOption({
-    //         title: {
-    //           text: this.radarName + " - 监测点: " + newVal
-    //         }
-    //       });
-    //     }
-    //   }
-    // },
-    // radarName: {
-    //   handler(newVal) {
-    //     if (this.chart) {
-    //       this.chart.setOption({
-    //         title: {
-    //           text: newVal + " - 监测点: " + this.pointIndex
-    //         }
-    //       });
-    //     }
-    //   }
-    // }
-  },
-
+  watch: {},
   // 页面加载完成时触发
-  mounted() {
-    window.addEventListener("resize", this.handleResize);
-  },
+  mounted() {},
   // 组件销毁前
   beforeDestroy() {
-    // window.removeEventListener("resize", this.handleResize);
-    if (this.chart) {
-      this.chart.dispose();
-      this.chart = null;
-    }
+    this.clearAllTimers();
+    this.removeChart();
   },
 
   methods: {
     async onOpen() {
-      console.log("radarInfo onOpen", this.radarInfo);
-      console.log("radarPointInfo onOpen", this.radarPointInfo);
+      // console.log("radarInfo onOpen", this.radarInfo);
+      // console.log("radarPointInfo onOpen", this.radarPointInfo);
 
       let { radarName } = this.radarInfo;
       let { pointName } = this.radarPointInfo;
       this.title = `${radarName} - 监测点: ${pointName}`;
 
+      this.initChart();
+      window.addEventListener("resize", this.handleResize);
+
       let startTime = moment().subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
       let endTime = moment().format("YYYY-MM-DD HH:mm:ss");
       this.inputDate = [startTime, endTime];
-      console.log(" this.inputDate :", this.inputDate);
       try {
-        await this.getRadarPointDeformData();
-        this.initChart();
+        await this.getRadarPointList();
       } catch (error) {
         console.error("初始化报表出错：", error);
       }
@@ -204,157 +151,163 @@ export default {
     },
     close() {
       console.log("关闭close");
+      this.clearAllTimers();
+      this.removeChart();
       this.$emit("update:visible", false);
     },
 
     // 获取变形点数据
-    async getRadarPointDeformData() {
-      let { radarId } = this.radarInfo;
-      let { pointIndex } = this.radarPointInfo;
+    async getRadarPointList() {
+      const { radarId } = this.radarInfo;
+      const { pointIndex } = this.radarPointInfo;
 
-      let param = {
+      const param = {
         devid: radarId,
         index: pointIndex,
         startTime: this.inputDate[0],
         endTime: this.inputDate[1]
       };
-      console.log("param:", param);
-      let resp = await getRadarPointDeformData(param);
-      if (resp.code === 200 && resp.data && resp.data.length > 0) {
-        // 处理数据并更新图表
-        const chartData = resp.data.map(item => ({
-          SvrTime: new Date(item.SvrTime).getTime(),
-          Deformation: item.Deformation
-        }));
-        console.log("chartData=", chartData);
+
+      try {
+        const resp = await getRadarPointDeformData(param);
+        const chartData = resp?.data || [];
         this.imageData = chartData;
-      } else {
-        this.imageData = [];
+
+        if (chartData.length === 0) {
+          this.$message({
+            message: "当前查询时间没有形变数据",
+            type: "warning",
+            duration: 2000
+          });
+        }
+
+        this.updateData();
+        console.log("查询this.timers:", this.timers);
+        // 用统一管理的 addTimeout 轮询
+        this.addTimeout(() => this.getRadarPointList(param), 1000);
+      } catch (error) {
+        console.error("查询形变数据出错:", error);
+        this.clearAllTimers();
       }
     },
 
-    // 选择日期：
+    // 选择日期
     onChangeTimeEvent() {},
+    // 查询
     async onClickQueryBtn() {
-      console.log("点击查询");
-      console.log("inputDate:", this.inputDate);
-      await this.getRadarPointDeformData();
-      this.initChart();
+      this.clearAllTimers(); // 先清理已有轮询
+      await this.getRadarPointList(); // 再发起新查询
     },
 
     // 初始化图表
     initChart() {
-      this.chart = echarts.init(this.$refs.lineChart);
-      console.log("imageData", this.imageData);
+      console.log("初始化图表:");
       const option = {
         animation: false,
-        title: {
-          text: this.title,
-          textStyle: {
-            color: "#fff",
-            fontSize: 16
-          },
-          left: "center"
-        },
-        textStyle: {
-          color: "#fff" // 默认文本颜色
-          // fontSize: 12
-        },
+        // title: {
+        //   text: this.title,
+        //   left: "center"
+        // },
         tooltip: {
           trigger: "axis",
-          axisPointer: {
-            type: "shadow"
-          }
+          axisPointer: { type: "cross" }
         },
-        // legend: {
-        //   data: this.seriesData.map(item => item.name),
-        //   top: 30
-        // },
-        grid: {
-          left: "3%",
-          right: "4%",
-          bottom: "3%",
-          containLabel: true
-        },
+
         xAxis: {
           type: "category",
-          data: this.imageData ? this.imageData.map(item => new Date(item.SvrTime).toLocaleTimeString()) : [],
-          axisLabel: {
-            rotate: 45
-          }
+          data: [],
+          axisLabel: { rotate: 0 },
+          name: "时间",
+          position: "bottom" // X 轴固定在底部
         },
         yAxis: {
-          type: "value",
-          boundaryGap: [0, "100%"]
+          name: "形变数据",
+          type: "value"
+          // boundaryGap: [0, "100%"]
         },
+
         series: [
           {
-            name: "形变值",
-            type: "line",
-            data: this.imageData ? this.imageData.map(item => item.Deformation) : [],
-            smooth: false,
-            large: true,
-            sampling: "lttb",
-            areaStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: "rgba(64, 158, 255, 0.5)" },
-                { offset: 1, color: "rgba(64, 158, 255, 0.1)" }
-              ])
-            }
+            // name: "雷达距离像数据", // 系列名称，用于tooltip的显示
+            type: "line", // 折线图
+            yAxisIndex: 0,
+            sampling: "lttb", // 降采样
+            data: []
           }
         ],
+        // 缩放
         dataZoom: [
           {
-            type: "inside",
-            start: 0,
-            end: 100,
-            // 解决缩放时的索引计算问题
-            filterMode: "none"
-          },
-          {
-            start: 0,
-            end: 10
+            type: "inside", // 内置型，支持鼠标滚轮缩放
+            xAxisIndex: 0, // 作用在第一个x轴
+            start: 0, // 初始显示范围起始百分比
+            end: 100 // 初始显示范围结束百分比
           }
         ]
       };
-
-      this.chart.setOption(option);
+      this.myChart = echarts?.init(this.$refs.lineChart);
+      console.log("this.myChart:", this.myChart);
+      this.myChart?.setOption(option);
     },
 
-    updateMarkArea() {
-      console.log("updateMarkArea", this.currentMark);
-      this.chart.setOption({
-        series: [
-          {
-            markArea: {
-              data: [this.currentMark],
-              animation: false
-            }
-          }
-        ]
-      });
+    /** 销毁图表 */
+    removeChart() {
+      window.removeEventListener("resize", this.handleResize);
+      if (this.myChart) {
+        this.myChart.off("updateAxisPointer", this.handleUpdatePointer);
+        this.myChart.getZr().off("click", this.handleZrClick);
+        this.myChart.dispose();
+        this.myChart = null;
+      }
     },
+
+    /** 更新数据 */
+    updateData() {
+      this.handleResize();
+      // 距离像信号强度数据
+      let data = this.imageData?.map(item => item.Deformation);
+      // 下标点位
+      let xAxisData = this.imageData?.map(item => moment(item.SvrTime).format("MM-DD HH:mm:ss"));
+      this.myChart?.setOption(
+        {
+          xAxis: { data: xAxisData, position: "bottom" },
+          series: [{ data: data }]
+        },
+        false,
+        false
+      ); // 不合并、不动画
+    },
+
     // 处理窗口大小变化
     handleResize() {
-      this.chart?.resize();
+      this.myChart?.resize();
+    },
+    // 添加定时器并保存到数组
+    addTimeout(fn, delay) {
+      if (this.timers.length > 0) return;
+
+      const id = setTimeout(() => {
+        fn();
+        // 一次性定时器执行后可移除
+        this.timers = this.timers.filter(t => t !== id);
+      }, delay);
+      this.timers.push(id);
+      return id;
     },
 
-    // 模拟数据更新
-    updateData() {
-      // this.handleResize();
-      // Create a copy of the prop data to avoid direct mutation
-      const imageDataCopy = [...this.imageData];
-      this.seriesData = this.seriesData.map(series => ({
-        ...series,
-        data: imageDataCopy.map(() => Math.floor(Math.random() * 300))
-      }));
+    // 清理所有定时器
+    clearAllTimers() {
+      console.log("  this.timers:", this.timers);
+      this.timers.forEach(id => clearTimeout(id));
+      this.timers = [];
+      console.log("RadarImage.所有轮询已停止");
     }
   }
 };
 </script>
 
 <style scoped>
-/* .chart-container {
+/* .myChart-container {
   margin: 0;
   padding: 0px;
   background: #333333aa;

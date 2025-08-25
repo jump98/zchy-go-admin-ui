@@ -4,23 +4,18 @@
       <template #wrapper>
         <el-row :gutter="10" class="mb10">
           <el-col :sm="24" :md="8">
-            <el-card v-if="info.cpu" class="box-card" shadow="always" :body-style="{paddingTop:'0 !important'}">
+            <el-card v-if="info.cpu" class="box-card" shadow="always" :body-style="{ paddingTop: '0 !important' }">
               <div slot="header" class="clearfix">
                 <el-row :gutter="10">
                   <el-col :sm="24" :md="8">
-                    <el-tag
-                      type="success"
-                      effect="dark"
-                    >
-                      Runing
-                    </el-tag>
+                    <el-tag type="success" effect="dark"> Runing </el-tag>
                   </el-col>
-                  <el-col :sm="24" :md="8" class="" style="line-height:28px;text-align:center;">
+                  <el-col :sm="24" :md="8" class="" style="line-height: 28px; text-align: center">
                     {{ info.location }}
                   </el-col>
                 </el-row>
               </div>
-              <div class="monitor" style="padding-top:0px;">
+              <div class="monitor" style="padding-top: 0px">
                 <div class="monitor-content">
                   <el-row :gutter="10">
                     <el-col :sm="24" :md="12">
@@ -37,45 +32,31 @@
                   <el-row :gutter="10">
                     <el-col :sm="12" :md="12" class="line">
                       <el-row>
-                        <el-col span="12" :sm="8" :md="8" xs="12">
-                          下载<i class="el-icon-caret-bottom" />
-                        </el-col>
-                        <el-col span="12" :sm="16" :md="16" xs="12" class="line-value">
-                          {{ info.net.in }}KB
-                        </el-col>
+                        <el-col :span="12" :sm="8" :md="8" :xs="12"> 下载<i class="el-icon-caret-bottom" /> </el-col>
+                        <el-col :span="12" :sm="16" :md="16" :xs="12" class="line-value"> {{ info.net.in }}KB </el-col>
                       </el-row>
                     </el-col>
                     <el-col :sm="12" :md="12" class="line">
                       <el-row border>
-                        <el-col span="12" :sm="6" :md="8">
-                          上传<i class="el-icon-caret-top" />
-                        </el-col>
-                        <el-col span="12" :sm="6" :md="16" class="line-value">
-                          {{ info.net.out }}KB
-                        </el-col>
+                        <el-col :span="12" :sm="6" :md="8"> 上传<i class="el-icon-caret-top" /> </el-col>
+                        <el-col :span="12" :sm="6" :md="16" class="line-value"> {{ info.net.out }}KB </el-col>
                       </el-row>
                     </el-col>
                   </el-row>
                   <el-row :gutter="10" class="monitor-progress">
-                    <el-col :sm="24" :md="4">
-                      CPU
-                    </el-col>
+                    <el-col :sm="24" :md="4"> CPU </el-col>
                     <el-col :sm="24" :md="20">
                       <el-progress :color="customColors" :text-inside="true" :stroke-width="24" :percentage="info.cpu.percent" />
                     </el-col>
                   </el-row>
                   <el-row :gutter="10" class="monitor-progress">
-                    <el-col :sm="24" :md="4">
-                      RAM
-                    </el-col>
+                    <el-col :sm="24" :md="4"> RAM </el-col>
                     <el-col :sm="24" :md="20">
                       <el-progress :color="customColors" :text-inside="true" :stroke-width="24" :percentage="info.mem.percent" />
                     </el-col>
                   </el-row>
                   <el-row :gutter="10" class="monitor-progress">
-                    <el-col :sm="24" :md="4">
-                      硬盘
-                    </el-col>
+                    <el-col :sm="24" :md="4"> 硬盘 </el-col>
                     <el-col :sm="24" :md="20">
                       <el-progress :color="customColors" :text-inside="true" :stroke-width="24" :percentage="info.disk.percent" />
                     </el-col>
@@ -115,19 +96,17 @@
               <Cell label="当前时间" :value="info.os.time" />
             </div>
           </el-card>
-
-        </el-row></template>
+        </el-row>
+      </template>
     </BasicLayout>
   </div>
 </template>
 
 <script>
-import Cell from '@/components/Cell/index'
-import {
-  getServer
-} from '@/api/monitor/server'
+import Cell from "@/components/Cell/index";
+import { getServer } from "@/api/monitor/server";
 export default {
-  name: 'Monitor',
+  name: "Monitor",
   components: {
     Cell
   },
@@ -135,45 +114,45 @@ export default {
     return {
       info: {},
       customColors: [
-        { color: '#13ce66', percentage: 20 },
-        { color: '#1890ff', percentage: 40 },
-        { color: '#e6a23c', percentage: 60 },
-        { color: '#1989fa', percentage: 80 },
-        { color: '#F56C6C', percentage: 100 }
+        { color: "#13ce66", percentage: 20 },
+        { color: "#1890ff", percentage: 40 },
+        { color: "#e6a23c", percentage: 60 },
+        { color: "#1989fa", percentage: 80 },
+        { color: "#F56C6C", percentage: 100 }
       ],
       timer: null
-    }
+    };
   },
   created() {
-    this.getServerInfo()
+    this.getServerInfo();
     this.timer = setInterval(() => {
-      this.getServerInfo()
-    }, 1000)
+      this.getServerInfo();
+    }, 1000);
   },
   beforeDestroy() {
-    clearInterval(this.timer)
-    this.timer = null
+    clearInterval(this.timer);
+    this.timer = null;
   },
   methods: {
     getServerInfo() {
       getServer().then(ret => {
         if (ret.code === 200) {
-          this.info = ret
+          this.info = ret;
         }
-      })
+      });
     }
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-.line{
+.line {
   line-height: 49px;
-  font-size: 14px ;
+  font-size: 14px;
   padding-left: 5px !important;
   padding-right: 5px !important;
   border-bottom: 1px solid #e6ebf5;
-  .line-value{
+  .line-value {
     text-align: right;
     color: #969799;
   }
@@ -185,9 +164,8 @@ export default {
     justify-content: center;
     align-items: center;
   }
-  .monitor-progress{
+  .monitor-progress {
     padding-top: 15px;
   }
 }
-
 </style>

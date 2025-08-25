@@ -23,8 +23,8 @@ export default {
     return {
       timerId: null,
       imageData: [], // 你的2000条数据数组
-      imageTime: "", //服务器时间
-      showChart: false //显示报表
+      imageTime: "", // 服务器时间
+      showChart: false // 显示报表
     };
   },
   watch: {
@@ -33,22 +33,32 @@ export default {
         if (!newVal) return;
         this.showChart = !!newVal;
         console.log("监听radarid变化:", newVal);
+        // 清除之前的定时器
+        this.closeTimeout();
         this.getImageData(newVal);
       }
     }
   },
-  created() {
-    // 生成示例数据（2000个随机数）
-    this.imageData = Array.from({ length: 200 }, () => Math.floor(Math.random() * 1000));
+  created() {},
+  mounted() {},
+
+  activated() {
+    // 页面再次激活时启动轮询
+    this.getImageData();
   },
-  mounted() {
-    console.log("RadarImage.mounted");
-    this.startTimer();
+
+  deactivated() {
+    // keep-alive 页面隐藏时停止轮询
+    this.closeTimeout();
   },
+
   beforeDestroy() {
-    if (this.timerId) {
-      clearTimeout(this.timerId); // 清除定时器
-    }
+    // 组件销毁前彻底停止轮询
+    console.log("RadarStateInfo beforeDestroy");
+    this.closeTimeout();
+  },
+  destroyed() {
+    console.log("RadarStateInfo destroyed");
   },
   methods: {
     onImageIndexClick(data) {
@@ -61,24 +71,25 @@ export default {
         if (!radarid) return;
         console.log("请求获取影像信息：", radarid);
         let resp = await getSysRadarImage(radarid);
-        let { Data, TimeStamp, RadarID } = resp.data;
-        console.log("获取雷达影像结果:", Data, TimeStamp, RadarID);
+        let { Data, TimeStamp } = resp.data;
+        console.log("获取雷达影像结果:", TimeStamp);
         this.imageData = Data;
         this.imageTime = moment(TimeStamp * 1000).format("YYYY-MM-DD HH时mm分ss秒");
         this.showChart = true;
+        this.timerId = setTimeout(() => this.getImageData(radarid), 1000); // 30秒轮询
       } catch (error) {
         this.showChart = false;
+        // 后续可以根据失败的次数，来设置timeout的时间间隔
+        this.closeTimeout();
       }
     },
-    startTimer() {
-      let self = this;
-      console.log("that.radarid:", self.radarid);
-      if (!self.radarid) return;
-      // this.timerId = setTimeout(() => {
-      //console.log("Timer executed");
-      self.getImageData(self.radarid);
-      self.startTimer();
-      // }, 1000);
+    // 关闭定时器
+    closeTimeout() {
+      if (this.timerId) {
+        clearTimeout(this.timerId);
+        this.timerId = null;
+        console.log("RadarImage.轮询已停止");
+      }
     }
   }
 };

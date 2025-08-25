@@ -108,33 +108,33 @@ export default {
     },
     dialogAction: {
       type: Number,
-      default: 0 //动作：1修改 2增加
+      default: 0 // 动作：1修改 2增加
     },
     radarid: {
       type: Number,
       default: 0
     },
-    //关系表数据
+    // 关系表数据
     radarIdOptions: {
       type: Array,
       default: () => []
     },
-    //监测点类型
+    // 监测点类型
     pointTypeOptions: {
       type: Array,
       default: () => []
     },
-    //激活状态
+    // 激活状态
     aStatusOptions: {
       type: Array,
       default: () => []
     },
-    //消警状态
+    // 消警状态
     xStatusOptions: {
       type: Array,
       default: () => []
     },
-    //门限状态
+    // 门限状态
     mTypeIdOptions: {
       type: Array,
       default: () => []
@@ -153,7 +153,7 @@ export default {
         lng: [
           {
             required: true,
-            //此处的'formValidation'不可随着:model改变而改变，因为formValidations.js已经定义好的，全局使用
+            // 此处的'formValidation'不可随着:model改变而改变，因为formValidations.js已经定义好的，全局使用
             validator: formValidation.validatorLongitude,
             message: "经度范围：-180~180（保留小数点后七位）",
             trigger: "change"
@@ -197,7 +197,7 @@ export default {
       console.log("radarPointRow:", this.radarPointRow);
     },
 
-    //提交按钮
+    // 提交按钮
     async onClickSubmitFormBtn() {
       this.$refs["form"].validate(valid => {
         if (valid) {
@@ -210,7 +210,7 @@ export default {
               }
             });
           }
-          //新增
+          // 新增
           if (this.dialogAction == 2) {
             this.radarPointRow.radarId = this.radarid;
             addRadarPoint(this.radarPointRow).then(response => {
@@ -229,7 +229,7 @@ export default {
         }
       });
     },
-    //取消按钮
+    // 取消按钮
     onClickCancelBtn() {
       this.close();
     },

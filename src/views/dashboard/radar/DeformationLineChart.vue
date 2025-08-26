@@ -69,7 +69,7 @@ export default {
             text: "今天",
             onClick(picker) {
               const start = moment().startOf("day").format("YYYY-MM-DD HH:mm:ss");
-              const end = moment().format("YYYY-MM-DD HH:mm:ss");
+              const end = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
               console.log("end:", end);
               console.log("start:", start);
               picker.$emit("pick", [start, end]);
@@ -138,7 +138,7 @@ export default {
       window.addEventListener("resize", this.handleResize);
 
       let startTime = moment().subtract(1, "days").format("YYYY-MM-DD HH:mm:ss");
-      let endTime = moment().format("YYYY-MM-DD HH:mm:ss");
+      let endTime = moment().endOf("day").format("YYYY-MM-DD HH:mm:ss");
       this.inputDate = [startTime, endTime];
       try {
         await this.getRadarPointList();

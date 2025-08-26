@@ -25,10 +25,20 @@
 
       <el-descriptions v-if="radarInfo && stateInfo" :column="4" title="雷达状态信息" direction="horizontal" border style="margin-top: 20px">
         <!-- <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item> -->
-        <el-descriptions-item label="磁盘总容量">{{ formatBytes(stateInfo.disk_total) }}</el-descriptions-item>
-        <el-descriptions-item label="磁盘剩余容量">{{ formatBytes(stateInfo.disk_free) }}</el-descriptions-item>
-        <el-descriptions-item label="内存总容量">{{ formatBytes(stateInfo.ram_total) }}</el-descriptions-item>
-        <el-descriptions-item label="内存剩余容量">{{ formatBytes(stateInfo.ram_free) }}</el-descriptions-item>
+        <el-descriptions-item label="磁盘使用率" :span="1">
+          <el-progress :stroke-width="15" :percentage="stateInfo.diskRatio" />
+          <div>{{ formatDisk() }}</div>
+          <!-- :format="formatDisk" -->
+        </el-descriptions-item>
+
+        <!-- <el-descriptions-item label="磁盘使用率">{{ formatBytes(stateInfo.disk_total) }}</el-descriptions-item> -->
+        <!-- <el-descriptions-item label="磁盘剩余容量">{{ formatBytes(stateInfo.disk_free) }}</el-descriptions-item> -->
+        <el-descriptions-item label="内存使用率">
+          <el-progress :stroke-width="15" :percentage="stateInfo.MemoryRatio" />
+          <div>{{ formatMemory() }}</div>
+        </el-descriptions-item>
+        <!-- <el-descriptions-item label="内存总容量">{{ formatBytes(stateInfo.ram_total) }}</el-descriptions-item> -->
+        <!-- <el-descriptions-item label="内存剩余容量">{{ formatBytes(stateInfo.ram_free) }}</el-descriptions-item> -->
         <el-descriptions-item label="SIM卡状态">
           <el-tag v-if="stateInfo.sim_state === 0" type="success" size="small">正常</el-tag>
           <el-tag v-else size="small" type="danger">异常</el-tag>
@@ -93,10 +103,12 @@ export default {
       let resp = await getRadarStateInfo({ radarId });
       console.log("获取雷达状态信息:", resp);
       this.stateInfo = resp.data || {};
-      let { voltage, current, temperature } = this.stateInfo;
+      let { voltage, current, temperature, disk_total, disk_free, ram_total, ram_free } = this.stateInfo;
       this.stateInfo.voltageObj = JSON.parse(voltage);
       this.stateInfo.temperatureObj = JSON.parse(temperature);
       this.stateInfo.currentObj = JSON.parse(current);
+      this.stateInfo.diskRatio = this.calcDisk(disk_total, disk_free);
+      this.stateInfo.MemoryRatio = this.calcMemory(ram_total, ram_free);
       console.log("voltageObj:", JSON.parse(voltage));
       console.log("temperature:", JSON.parse(temperature));
       console.log("this.stateInfo.current:", this.stateInfo.currentObj);
@@ -110,7 +122,34 @@ export default {
       const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
       return Math.round(bytes / Math.pow(1024, i), 2) + " " + sizes[i];
     },
-
+    // 计算磁盘
+    calcDisk(disk_total = 0, disk_free = 0) {
+      if (!disk_total) return 0; // 避免除以 0
+      let used = disk_total - disk_free;
+      let ratio = (used / disk_total) * 100;
+      console.log("磁盘使用率：", ratio.toFixed(0) + "%");
+      return Math.round(ratio);
+    },
+    // 计算内存
+    calcMemory(ram_total = 0, ram_free = 0) {
+      if (!ram_total) return 0; // 避免除以 0
+      let used = ram_total - ram_free;
+      let ratio = (used / ram_total) * 100;
+      console.log("内存使用率：", ratio.toFixed(0) + "%");
+      return Math.round(ratio);
+    },
+    formatDisk() {
+      let { disk_total, disk_free } = this.stateInfo;
+      let total = this.formatBytes(disk_total);
+      let free = this.formatBytes(disk_free);
+      return `${free}可用，共${total}`;
+    },
+    formatMemory() {
+      let { ram_total, ram_free } = this.stateInfo;
+      let total = this.formatBytes(ram_total);
+      let free = this.formatBytes(ram_free);
+      return `${free}可用，共${total}`;
+    },
     formatSimRSSI(rssi) {
       if (rssi === undefined || rssi === null) return "-";
       if (rssi === 0) return "≤-115dBm";

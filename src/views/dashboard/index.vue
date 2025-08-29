@@ -34,7 +34,7 @@ import DeformationLineChart from "./radar/DeformationLineChart.vue";
 import RadarItemDialog from "./radar/RadarItemDialog.vue";
 
 // 引用public下面的Cesium.js
-const Cesium = window["Cesium"];
+// const Cesium = window["Cesium"];
 
 export default {
   name: "Dashboard",
@@ -70,16 +70,7 @@ export default {
       showDeformationLineChart: false // 控制雷达点位弹出框显示
     };
   },
-  computed: {
-    // 计算属性：过滤当前雷达的监测点
-    // filteredPoints() {
-    //   console.log("computed.filteredPoints.会掉用吗？");
-    //   if (!this.selectedRadar) {
-    //     return [];
-    //   }
-    //   return this.pointList.filter(point => point.radarId === this.selectedRadar.radarId);
-    // }
-  },
+  computed: {},
 
   // 页面创建时触发
   created() {
@@ -87,16 +78,16 @@ export default {
     this.init();
   },
   // 页面加载完成时触发
-  mounted() {},
+  mounted() {
+    console.log("Dashboard页面加载完成时触发");
+  },
   // 页面再次激活时
   activated() {
     console.error("Dashboard 页面再次激活时");
     // this.init();
   },
   // 页面隐藏时
-  deactivated() {
-    //  this.closeTimeout();
-  },
+  deactivated() {},
 
   beforeDestroy() {
     // 组件销毁前彻底停止轮询
@@ -121,6 +112,7 @@ export default {
       this.radarList = list;
       if (!list || list.length === 0) {
         this.loading = false;
+        console.error("没有雷达，暂时不显示地图信息！！！");
         return;
       }
 

@@ -22,6 +22,10 @@ export const RadarPointTag = "point-"; // 雷达点实体tag
 let Cesium = window["Cesium"];
 
 class tCesiem {
+  constructor() {
+    console.error("tCesiem New");
+  }
+
   /**
    * 创建天地图（2D 平面）
    * @param {*} dom m 容器 DOM

@@ -4,7 +4,7 @@
       <el-row>
         <el-col :span="12">
           <el-form-item label="雷达" prop="radarId">
-            <el-select v-model="radarid" placeholder="请选择" disabled>
+            <el-select v-model="radarId" placeholder="请选择" disabled>
               <el-option v-for="dict in radarIdOptions" :key="dict.key" :label="dict.value" :value="dict.key" />
             </el-select>
           </el-form-item>
@@ -110,7 +110,7 @@ export default {
       type: Number,
       default: 0 // 动作：1修改 2增加
     },
-    radarid: {
+    radarId: {
       type: Number,
       default: 0
     },
@@ -193,7 +193,7 @@ export default {
         this.resetForm("form");
         this.title = "添加新的监测点";
       }
-      console.log("radarid:", this.radarid);
+      console.log("radarId:", this.radarId);
       console.log("radarPointRow:", this.radarPointRow);
     },
 
@@ -212,7 +212,7 @@ export default {
           }
           // 新增
           if (this.dialogAction == 2) {
-            this.radarPointRow.radarId = this.radarid;
+            this.radarPointRow.radarId = this.radarId;
             addRadarPoint(this.radarPointRow).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg);

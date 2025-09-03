@@ -28,9 +28,7 @@
         <el-descriptions-item label="磁盘使用率" :span="1">
           <el-progress :stroke-width="15" :percentage="stateInfo.diskRatio" />
           <div>{{ formatDisk() }}</div>
-          <!-- :format="formatDisk" -->
         </el-descriptions-item>
-
         <!-- <el-descriptions-item label="磁盘使用率">{{ formatBytes(stateInfo.disk_total) }}</el-descriptions-item> -->
         <!-- <el-descriptions-item label="磁盘剩余容量">{{ formatBytes(stateInfo.disk_free) }}</el-descriptions-item> -->
         <el-descriptions-item label="内存使用率">
@@ -72,7 +70,8 @@ export default {
     return {
       title: "",
       deviceInfo: null, // 设备信息
-      stateInfo: null // 状态信息
+      stateInfo: null, // 状态信息
+      timers: [] // 统一管理定时器
     };
   },
   watch: {},
@@ -89,6 +88,7 @@ export default {
     },
     close() {
       console.log("关闭close");
+      this.clearAllTimers();
       this.$emit("update:visible", false);
     },
     // 查询设备信息
@@ -100,18 +100,26 @@ export default {
     },
     // 查询状态信息
     async getRadarStateInfo(radarId) {
-      let resp = await getRadarStateInfo({ radarId });
-      console.log("获取雷达状态信息:", resp);
-      this.stateInfo = resp.data || {};
-      let { voltage, current, temperature, disk_total, disk_free, ram_total, ram_free } = this.stateInfo;
-      this.stateInfo.voltageObj = JSON.parse(voltage);
-      this.stateInfo.temperatureObj = JSON.parse(temperature);
-      this.stateInfo.currentObj = JSON.parse(current);
-      this.stateInfo.diskRatio = this.calcDisk(disk_total, disk_free);
-      this.stateInfo.MemoryRatio = this.calcMemory(ram_total, ram_free);
-      console.log("voltageObj:", JSON.parse(voltage));
-      console.log("temperature:", JSON.parse(temperature));
-      console.log("this.stateInfo.current:", this.stateInfo.currentObj);
+      try {
+        let resp = await getRadarStateInfo({ radarId });
+        console.log("获取雷达状态信息:", resp);
+        this.stateInfo = resp.data || {};
+        let { voltage, current, temperature, disk_total, disk_free, ram_total, ram_free } = this.stateInfo;
+        this.stateInfo.voltageObj = JSON.parse(voltage);
+        this.stateInfo.temperatureObj = JSON.parse(temperature);
+        this.stateInfo.currentObj = JSON.parse(current);
+        this.stateInfo.diskRatio = this.calcDisk(disk_total, disk_free);
+        this.stateInfo.MemoryRatio = this.calcMemory(ram_total, ram_free);
+
+        console.log("查询this.timers:", this.timers);
+        // 用统一管理的 addTimeout 轮询
+        // this.addTimeout(() => this.getRadarStateInfo(radarId), 1000);
+      } catch (error) {
+        console.error("查询形变数据出错:", error);
+        this.clearAllTimers();
+      }
+
+      //
     },
 
     formatBytes(bytes) {
@@ -157,6 +165,25 @@ export default {
       if (rssi >= 2 && rssi <= 30) return "-109～-53dBm";
       if (rssi >= 31) return "≥-51dBm";
       return `${rssi}dBm`;
+    },
+    // 添加定时器并保存到数组
+    addTimeout(fn, delay) {
+      if (this.timers.length > 0) return;
+      const id = setTimeout(() => {
+        fn();
+        // 一次性定时器执行后可移除
+        this.timers = this.timers.filter(t => t !== id);
+      }, delay);
+      this.timers.push(id);
+      return id;
+    },
+
+    // 清理所有定时器
+    clearAllTimers() {
+      console.log("this.timers:", this.timers);
+      this.timers.forEach(id => clearTimeout(id));
+      this.timers = [];
+      console.log("RadarItemDialog.所有轮询已停止");
     }
   }
 };

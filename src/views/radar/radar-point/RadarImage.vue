@@ -1,22 +1,26 @@
 <template>
-  <LargeLineChart v-show="showChart" :image-data="imageData" :image-time="imageTime" @ImageIndexClick="onImageIndexClick" />
+  <RadarImageChart v-show="showChart" :radar-point-list="radarPointList" :image-data="imageData" :image-time="imageTime" @ImageIndexClick="onImageIndexClick" />
 </template>
 
 <script>
 import moment from "moment";
-import LargeLineChart from "./LargeLineChart.vue";
+import RadarImageChart from "./RadarImageChart.vue";
 import { getSysRadarImage } from "@/api/admin/sys-radar";
 
 export default {
   name: "RadarImage",
   components: {
-    LargeLineChart
+    RadarImageChart
   },
   props: {
-    radarid: {
+    radarId: {
       type: Number,
       required: true,
       default: 0
+    },
+    radarPointList: {
+      type: Array,
+      default: () => []
     }
   },
   data() {
@@ -28,7 +32,7 @@ export default {
     };
   },
   watch: {
-    radarid: {
+    radarId: {
       handler(newVal) {
         if (!newVal) return;
         this.showChart = !!newVal;
@@ -66,17 +70,17 @@ export default {
       this.$emit("addRadarPointEvent", data);
     },
     /** 查询参数列表 */
-    async getImageData(radarid) {
+    async getImageData(radarId) {
       try {
-        if (!radarid) return;
-        console.log("请求获取影像信息：", radarid);
-        let resp = await getSysRadarImage(radarid);
+        if (!radarId) return;
+        console.log("请求获取影像信息：", radarId);
+        let resp = await getSysRadarImage(radarId);
         let { Data, TimeStamp } = resp.data;
         console.log("获取雷达影像结果:", TimeStamp);
         this.imageData = Data;
         this.imageTime = moment(TimeStamp * 1000).format("YYYY-MM-DD HH时mm分ss秒");
         this.showChart = true;
-        this.timerId = setTimeout(() => this.getImageData(radarid), 1000); // 30秒轮询
+        // this.timerId = setTimeout(() => this.getImageData(radarId), 1000); // 30秒轮询
       } catch (error) {
         this.showChart = false;
         // 后续可以根据失败的次数，来设置timeout的时间间隔

@@ -9,15 +9,27 @@
 // 按需引入（推荐，体积更小）
 // 按需引入 ECharts 5
 import * as echarts from "echarts/core";
-import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent } from "echarts/components";
+import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent, MarkLineComponent, MarkPointComponent } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 
-echarts.use([TooltipComponent, GridComponent, TitleComponent, LegendComponent, DataZoomComponent, LineChart, CanvasRenderer, UniversalTransition]);
+echarts.use([
+  //
+  TooltipComponent,
+  GridComponent,
+  TitleComponent,
+  LegendComponent,
+  DataZoomComponent,
+  MarkLineComponent,
+  MarkPointComponent,
+  LineChart,
+  CanvasRenderer,
+  UniversalTransition
+]);
 
 export default {
-  name: "LargeLineChart",
+  name: "RadarImageChart",
 
   props: {
     imageData: {
@@ -28,6 +40,10 @@ export default {
     imageTime: {
       type: String,
       default: ""
+    },
+    radarPointList: {
+      type: Array,
+      default: () => []
     }
   },
 
@@ -54,9 +70,11 @@ export default {
   },
 
   beforeDestroy() {
-    console.log("LargeLineChart.beforeDestroy");
+    console.log("RadarImageChart.beforeDestroy");
     this.removeChart();
   },
+
+  // 雷达距离像数据报表
 
   methods: {
     /** 刷新图表数据 */
@@ -95,8 +113,9 @@ export default {
           {
             type: "category",
             data: [],
-            axisLabel: { rotate: 45 },
-            name: "监测点"
+            // axisLabel: { rotate: 45 },
+            name: "监测点",
+            boundaryGap: false // 控制坐标轴两端是否留白
           }
         ],
         yAxis: [
@@ -181,23 +200,69 @@ export default {
     /** 更新数据 */
     updateData() {
       this.handleResize();
-      // const MAX_POINTS = 12000; // 限制最大点数
-      // const latestData = this.imageData.slice(-MAX_POINTS);
-
       // 距离像信号强度数据
-      let data = this.imageData;
+      let seriesData = this.imageData;
       // let data = Array.from({ length: 10000 }, () => Math.floor(Math.random() * 10000) + 1);
       // 下标点位
-      let xAxisData = data.map((_, i) => i);
+      let xAxisData = seriesData.map((_, i) => i);
       // console.log("xAxisData:", xAxisData);
 
-      // let series = [50, 100, 200, 400];
+      // let seriesTestData = [50, 100, 400, 200];
+      // let xAxisDataTest = seriesTestData.map((_, i) => i);
+
+      let pointIndexs = [];
+      let radarPointList = this.radarPointList;
+      for (const item of radarPointList) {
+        pointIndexs.push(item.pointIndex);
+      }
+      console.log("雷达点位：", pointIndexs);
+      let coords = [];
+      for (const index of pointIndexs) {
+        coords.push({
+          coord: [index, seriesData[index]], // 点的位置
+          value: index,
+          name: `点：${index}`
+          // itemStyle: { color: "red" } // 点颜色
+        });
+      }
+      console.log("coords:", coords);
+
       // console.log("距离像信号强度数据:", data);
       this.myChart.setOption(
         {
-          xAxis: { data: xAxisData },
-          series: [{ data: data }],
-          title: { text: "当前雷达最新影像数据 " + this.imageTime }
+          xAxis: {
+            data: xAxisData
+          },
+          series: [
+            {
+              type: "line",
+              data: seriesData,
+              markPoint: {
+                data: coords
+              },
+              markLine: {
+                data: [
+                  [
+                    {
+                      symbol: "none",
+                      x: "90%",
+                      yAxis: "max"
+                    },
+                    {
+                      symbol: "circle",
+                      label: {
+                        position: "start",
+                        formatter: "{b}: {c}" // {b}=name, {c}=值
+                      },
+                      type: "max",
+                      name: "Max"
+                    }
+                  ]
+                ]
+              }
+            }
+          ],
+          title: { text: "当前雷达最新距离像数据 " + this.imageTime }
         },
         false,
         false

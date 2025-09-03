@@ -40,7 +40,7 @@
               <el-table-column label="名称" width="105" prop="radarName" sortable="custom" :show-overflow-tooltip="true" />
               <el-table-column label="编号" prop="radarKey" :show-overflow-tooltip="true" />
               <el-table-column label="特殊编号" prop="specialKey" width="108" />
-              <el-table-column label="状态" width="80" sortable="custom">
+              <el-table-column label="激活状态" width="120" sortable="custom">
                 <template slot-scope="scope">
                   <el-switch v-model="scope.row.status" active-value="2" inactive-value="1" :disabled="!checkThisPermission(['radar:sysRadar:edit'])" @change="handleStatusChange(scope.row)" />
                 </template>
@@ -50,22 +50,11 @@
                   <span>{{ parseTime(scope.row.createdAt) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" align="center">
+              <el-table-column label="操作" align="center" width="250" fixed="right">
                 <template slot-scope="scope">
                   <el-button slot="reference" size="mini" type="primary" @click="onClickDetailRadarBtn(scope.row)"> 详细 </el-button>
                   <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="success" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
                   <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="danger" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
-                  <!-- <el-button
-                    v-if="scope.row.fromProject === 1"
-                    slot="reference"
-                    v-permisaction="['radar:sysRadar:edit']"
-                    size="mini"
-                    type="text"
-                    icon="el-icon-question"
-                    @click="handleConfirmProject(scope.row)"
-                  >
-                    确认
-                  </el-button> -->
                 </template>
               </el-table-column>
             </el-table>
@@ -78,27 +67,11 @@
         </el-row>
 
         <!-- 雷达信息弹窗-->
-        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarRow" />
+        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarInfo" />
 
         <el-row style="margin-top: 20px">
           <!-- 显示点位信息  -->
-          <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radarid="curradarid" />
-
-          <!-- <el-col>
-            <div v-show="curradarid != 0" class="radar-components-row">
-              <div class="radar-component">
-                <h3>当前所选雷达的设备及状态信息如下：</h3>
-              </div>
-            </div>
-            <div class="radar-components-row">
-              <div class="radar-component">
-                <RadarStateInfo v-show="curradarid != 0" :radarid="curradarid" />
-              </div>
-              <div class="radar-component">
-                <RadarDeviceInfo v-show="curradarid != 0" :radarid="curradarid" />
-              </div>
-            </div>
-          </el-col> -->
+          <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radar-id="curradarid" :radar-info="radarInfo" />
         </el-row>
       </el-card>
     </template>
@@ -115,7 +88,7 @@ import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 import RadarPoint from "../radar-point/index.vue";
 import RadarEditDialog from "./RadarEditDialog.vue";
 import { checkPermission } from "@/utils/permission";
-import RadarItemDialog from "../../dashboard/radar/RadarItemDialog.vue";
+import RadarItemDialog from "./RadarItemDialog.vue";
 
 export default {
   name: "SysRadar",
@@ -124,6 +97,8 @@ export default {
     return {
       // 当前的雷达ID
       curradarid: 0,
+      // 当前的雷达信息
+      radarInfo: null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -166,7 +141,8 @@ export default {
       defaultProps: {
         children: "children",
         label: "label"
-      }
+      },
+      showDeformationLineChart: false // 控制雷达点位弹出框显示
     };
   },
   watch: {
@@ -263,6 +239,7 @@ export default {
       this.dialogAction = 1;
     },
 
+    // 点击详细按钮
     async onClickDetailRadarBtn(row) {
       console.log("row:", row);
       this.radarRow = row;
@@ -285,7 +262,7 @@ export default {
 
     // 当表格的当前行发生变化的时候会触发该事件
     onHandleCurrentChange(currentRow) {
-      console.log("当表格的当前行发生变化的时候会触发该事件");
+      console.log("当表格的当前行发生变化的时候会触发该事件:", currentRow);
       if (currentRow) {
         console.log("设置curradarid:", currentRow.radarId);
         this.curradarid = currentRow.radarId;
@@ -294,6 +271,7 @@ export default {
         console.log("设置curradarid=0");
         this.curradarid = 0;
       }
+      this.radarInfo = currentRow || null;
     },
 
     // 确定按钮

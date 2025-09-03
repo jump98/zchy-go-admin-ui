@@ -1,8 +1,9 @@
 <template>
   <BasicLayout>
     <template #wrapper>
-      <RadarImage v-if="checkThisPermission(['radar:radarPoint:edit'])" :radarid="radarid" @addRadarPointEvent="onClickRadarPointEvent" />
-      <el-divider>以下是当前的雷达的监测点列表</el-divider>
+      <RadarImage v-if="checkThisPermission(['radar:radarPoint:edit'])" :radar-id="radarId" :radar-point-list="radarPointList" @addRadarPointEvent="onClickRadarPointEvent" />
+
+      <el-divider>雷达监测点列表</el-divider>
       <el-card class="box-card">
         <el-table v-loading="loading" :data="radarPointList" @selection-change="onSelectionChange">
           <el-table-column label="名称" align="center" prop="pointName" :show-overflow-tooltip="true" />
@@ -13,24 +14,15 @@
               {{ pointTypeFormat(scope.row) }}
             </template>
           </el-table-column>
-          <el-table-column label="雷达" align="center" prop="radarId" :formatter="radarIdFormat" width="100">
+          <!-- <el-table-column label="雷达" align="center" prop="radarId" :formatter="radarIdFormat" width="100">
             <template slot-scope="scope">
               {{ radarIdFormat(scope.row) }}
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" />
-          <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column
-            label="距离"
-            align="center"
-            prop="distance"
-            :show-overflow-tooltip="true"
-          /><el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /><el-table-column
-            label="激活状态"
-            align="center"
-            prop="aStatus"
-            :formatter="aStatusFormat"
-            width="100"
-          >
+          <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column label="距离" align="center" prop="distance" :show-overflow-tooltip="true" />
+          <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
+          <el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
             </template>
@@ -45,10 +37,11 @@
               {{ mTypeIdFormat(scope.row) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <el-table-column label="操作" align="center" width="250" fixed="right">
             <template slot-scope="scope">
-              <el-button slot="reference" v-permisaction="['radar:radarPoint:edit']" size="mini" type="text" icon="el-icon-edit" @click="onClickUpdateBtn(scope.row)"> 修改 </el-button>
-              <el-button slot="reference" v-permisaction="['radar:radarPoint:remove']" size="mini" type="text" icon="el-icon-delete" @click="onClickDeleteBtn(scope.row)"> 删除 </el-button>
+              <el-button slot="reference" size="mini" type="primary" @click="onClickXingBianBtn(scope.row)"> 数据 </el-button>
+              <el-button slot="reference" v-permisaction="['radar:radarPoint:edit']" size="mini" type="success" @click="onClickUpdateBtn(scope.row)"> 修改 </el-button>
+              <el-button slot="reference" v-permisaction="['radar:radarPoint:remove']" size="mini" type="danger" @click="onClickDeleteBtn(scope.row)"> 删除 </el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -64,10 +57,13 @@
           :a-status-options="aStatusOptions"
           :point-type-options="pointTypeOptions"
           :radar-id-options="radarIdOptions"
-          :radarid="radarid"
+          :radar-id="radarId"
           :dialog-action="dialogAction"
           @addRadarPointSuccesEvent="onAddRadarPointSuccesEvent"
         />
+
+        <!-- 监控点信息弹窗-->
+        <DeformDataChart :visible.sync="showDeformDataChart" :radar-info="radarInfo" :radar-point-info="radarPointRow" />
       </el-card>
     </template>
   </BasicLayout>
@@ -78,18 +74,24 @@ import { delRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
 
 import { getRadarList } from "@/api/admin/sys-radar";
 import RadarImage from "./RadarImage.vue";
+import DeformDataChart from "../radar-point-deform/DeformDataChart.vue";
 import PointEditDialog from "./PointEditDialog.vue";
 import { checkPermission } from "@/utils/permission";
 export default {
   name: "RadarPoint",
   components: {
     RadarImage,
-    PointEditDialog
+    PointEditDialog,
+    DeformDataChart
   },
   props: {
-    radarid: {
+    radarId: {
       type: Number,
       default: 0
+    },
+    radarInfo: {
+      type: Object,
+      default: () => ({})
     }
   },
   data() {
@@ -131,18 +133,17 @@ export default {
         aStatus: undefined
       },
       // 表单参数
-      radarPointRow: {}
+      radarPointRow: {},
+      showDeformDataChart: false // 控制雷达点位弹出框显示
     };
   },
 
-  // /
   watch: {
-    radarid: {
-      handler(newVal) {
-        console.log("index.vue.radarid=", newVal);
-      },
-      deep: true
-    }
+    // radarId: {
+    //   handler(newVal) {
+    //     console.log("index.vue.radarId=", newVal);
+    //   }
+    // }
   },
   created() {
     this.getList();
@@ -167,12 +168,12 @@ export default {
       return ok;
     },
     /** 查询RadarPoint列表 */
-    async getList(radarid) {
-      console.log("查询雷达点位信息，radarid:", radarid);
-      if (!radarid) radarid = this.radarid;
-      if (!radarid) return;
+    async getList(radarId) {
+      console.log("查询雷达点位信息，radarid:", radarId);
+      if (!radarId) radarId = this.radarId;
+      if (!radarId) return;
       this.loading = true;
-      this.queryParams.radarId = radarid;
+      this.queryParams.radarId = radarId;
       let resp = await getRadarPointList(this.addDateRange(this.queryParams, this.dateRange));
       let { list, count } = resp.data;
       this.radarPointList = list;
@@ -251,6 +252,12 @@ export default {
           }
         })
         .catch(function () {});
+    },
+    // 点击形变按钮
+    onClickXingBianBtn(row) {
+      console.log("点击形变数据:", row);
+      this.radarPointRow = row;
+      this.showDeformDataChart = true;
     }
   }
 };

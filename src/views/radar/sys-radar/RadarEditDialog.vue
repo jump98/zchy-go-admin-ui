@@ -31,11 +31,11 @@
             <el-input v-model="radarInfo.alt" placeholder="高度" class="lnglatnumber" />
           </el-form-item>
         </el-col>
-        <el-col :span="12">
-          <el-form-item label="状态" prop="status">
-            <el-input v-model="radarInfo.status" placeholder="状态" />
+        <!-- <el-col :span="12">
+          <el-form-item label="激活状态" prop="status">
+            <el-input v-model="radarInfo.status" placeholder="激活状态" />
           </el-form-item>
-        </el-col>
+        </el-col> -->
       </el-row>
       <el-form-item label="备注" prop="remark">
         <el-input v-model="radarInfo.remark" placeholder="备注" />

@@ -111,9 +111,8 @@ export default {
         this.stateInfo.diskRatio = this.calcDisk(disk_total, disk_free);
         this.stateInfo.MemoryRatio = this.calcMemory(ram_total, ram_free);
 
-        console.log("查询this.timers:", this.timers);
         // 用统一管理的 addTimeout 轮询
-        // this.addTimeout(() => this.getRadarStateInfo(radarId), 1000);
+        this.addTimeout(() => this.getRadarStateInfo(radarId), 1000);
       } catch (error) {
         console.error("查询形变数据出错:", error);
         this.clearAllTimers();

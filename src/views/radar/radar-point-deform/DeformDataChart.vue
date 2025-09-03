@@ -43,16 +43,30 @@
 <script>
 import { getRadarPointDeformData } from "@/api/admin/radar-point";
 import moment from "moment";
+
 // 按需引入（推荐，体积更小）
 import * as echarts from "echarts/core";
-import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent } from "echarts/components";
+import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent, MarkLineComponent, MarkPointComponent } from "echarts/components";
 import { LineChart } from "echarts/charts";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 
-echarts.use([TooltipComponent, GridComponent, TitleComponent, LegendComponent, DataZoomComponent, LineChart, CanvasRenderer, UniversalTransition]);
-
+echarts.use([
+  //
+  TooltipComponent,
+  GridComponent,
+  TitleComponent,
+  LegendComponent,
+  DataZoomComponent,
+  MarkLineComponent,
+  MarkPointComponent,
+  LineChart,
+  CanvasRenderer,
+  UniversalTransition
+]);
 export default {
+  name: "DeformDataChart",
+
   props: {
     radarInfo: {
       type: Object,
@@ -72,8 +86,8 @@ export default {
       queryRadio: "1", // 选择时间
       inputDate: [],
       maxDate: null, // 查询的最大时间
-      xAxisData: [], // xAxis数据
-      seriesData: [], // 表格数据
+      seriesAData: [], // 形变数据
+      seriesBData: [], // 表格数据
       closed: false // 页面是否已关闭
     };
   },
@@ -144,20 +158,15 @@ export default {
         hours: Number(this.queryRadio) // 查询最近几小时（单位：小时）
       };
 
-      // console.log("开始时间:", startTime.format(this.dateFormat));
-      // console.log("结束时间:", endTime.format(this.dateFormat));
-
       try {
         const resp = await getRadarPointDeformData(param);
+        console.log("resp:", resp);
+        if (!resp) return;
         let list = resp?.data?.list || [];
         let last_time = resp?.data?.last_time;
-        // console.log("查询形变数据结果resp:", resp);
-        console.log("查询形变数据结果:", list?.length);
-
-        for (const item of list) {
-          console.log("时间:", moment(item.SvrTime).format(this.dateFormat));
-        }
-
+        console.log("list:", list);
+        console.log("list.leng:", list.length);
+        console.log("list:", list);
         if (list.length > 0) {
           // 如果有maxDate，防止插入重复数据
           if (this.maxDate) {
@@ -166,17 +175,17 @@ export default {
             if (t1.isSame(t2)) {
               console.log("查询的结果跟上一次的相同，不追加显示数据");
             } else {
-              console.error("实时累加数据");
+              console.log("实时累加数据");
               this.appendChartData(list);
             }
           } else {
             this.appendChartData(list);
           }
-          // 记录最后一条数据的时间
+          // 记录最后一条数据的时间 (之后append数据)
           this.maxDate = moment(last_time).format(this.dateFormat);
         }
 
-        if (list.length === 0 && this.seriesData.length == 0) {
+        if (list.length == 0 && this.seriesAData.length == 0) {
           this.$message({
             message: "当前查询时间没有形变数据",
             type: "warning",
@@ -230,35 +239,65 @@ export default {
 
     // 初始化图表
     initChart() {
-      console.log("初始化图表:");
+      console.log("初始化图表");
       const option = {
         animation: false,
-        // title: {
-        //   text: this.title,
-        //   left: "center"
-        // },
         tooltip: {
           trigger: "axis",
-          axisPointer: { type: "cross" }
+          axisPointer: { type: "cross" },
+          formatter: function (params) {
+            return params
+              .map(p => {
+                let name = p.seriesName;
+                if (name === "A") name = "形变数据";
+                if (name === "B") name = "距离数据";
+                return `${name}: ${p.value[1]}`;
+              })
+              .join("<br/>");
+          }
         },
-
+        grid: {
+          bottom: 120 // 增加图表底部内边距，为X轴和时间显示留出更多空间
+        },
+        title: {
+          text: "形变数据",
+          left: "center"
+        },
         xAxis: {
-          // type: "time",
-          type: "category",
-          data: [],
-          axisLabel: { rotate: 0 },
+          type: "time",
           name: "时间",
-          position: "bottom" // X 轴固定在底部
+          position: "bottom", // X 轴固定在底部
+          axisLine: {
+            onZero: false // 关闭与 y=0 对齐
+          }
         },
         yAxis: {
-          name: "形变数据",
-          type: "value"
-          // boundaryGap: [0, "100%"]
+          name: "形变值(mm)",
+          type: "value",
+          position: "bottom",
+          boundaryGap: false, // 控制坐标轴两端是否留白
+          axisLabel: {
+            formatter: "{value}"
+          }
         },
-
+        legend: {
+          // 设置图例在顶部
+          // bottom: 100 // 距离容器顶部的距离，单位为px
+          data: ["A", "B"],
+          selected: {
+            A: true,
+            B: false
+          },
+          formatter: function (name) {
+            // 显示时把 A/B 转换为中文
+            if (name === "A") return "形变数据";
+            if (name === "B") return "距离数据";
+            return name;
+          }
+        },
         series: [
           {
-            // name: "雷达距离像数据", // 系列名称，用于tooltip的显示
+            name: "形变数据", // 系列名称，用于tooltip的显示
             type: "line", // 折线图
             yAxisIndex: 0,
             sampling: "lttb", // 降采样
@@ -272,42 +311,124 @@ export default {
             xAxisIndex: 0, // 作用在第一个x轴
             start: 0, // 初始显示范围起始百分比
             end: 100 // 初始显示范围结束百分比
+          },
+          {
+            type: "slider", // 外部滑动条，也可选择显示
+            xAxisIndex: 0,
+            start: 0,
+            end: 100,
+            bottom: 50
           }
         ]
       };
       this.myChart = echarts?.init(this.$refs.lineChart);
-      console.log("this.myChart:", this.myChart);
       this.myChart?.setOption(option);
+
+      this.bindClickEvent();
     },
 
+    bindClickEvent() {
+      this.myChart.on("legendselectchanged", this.onLegendselectchanged);
+    },
+    // 监听legend事件
+    onLegendselectchanged(params) {
+      console.log("params:", params);
+      if (params.name === "A") {
+        this.myChart.setOption({
+          legend: {
+            selected: {
+              A: params.selected["A"],
+              B: false
+            }
+          },
+          yAxis: {
+            name: "形变值(mm)"
+          },
+          title: {
+            text: "形变数据",
+            left: "center"
+          }
+        });
+      }
+      if (params.name === "B") {
+        this.myChart.setOption({
+          legend: {
+            selected: {
+              A: false,
+              B: params.selected["B"]
+            }
+          },
+          yAxis: {
+            name: "距离值(m)"
+          },
+          title: {
+            text: "距离数据",
+            left: "center"
+          }
+        });
+      }
+    },
     /** 销毁图表 */
     removeChart() {
       window.removeEventListener("resize", this.handleResize);
-      this.seriesData = [];
-      this.xAxisData = [];
+      this.seriesAData = [];
+      this.seriesBData = [];
       if (this.myChart) {
-        this.myChart.off("updateAxisPointer", this.handleUpdatePointer);
-        this.myChart.getZr().off("click", this.handleZrClick);
+        this.myChart.off("legendselectchanged", this.onLegendselectchanged);
         this.myChart.dispose();
         this.myChart = null;
       }
     },
 
-    /** 追加数据 */
+    /** 追加图表数据 */
     appendChartData(data = []) {
       this.handleResize();
-      // 距离像信号强度数据
-      let seriesData = data?.map(item => item.Deformation);
-      this.seriesData.push(...seriesData);
-      // 下标点位
-      // let xAxisData = data?.map(item => item.SvrTime);
-      let xAxisData = data?.map(item => moment(item.SvrTime).format("MM-DD HH:mm:ss"));
-      this.xAxisData.push(...xAxisData);
+      // 数据
+      let seriesAData = data.map(item => [item.SvrTime, item.Deformation / 100]); // 服务器存储的值*100
+      let seriesBData = data.map(item => [item.SvrTime, item.Distance / 100]);
+
+      // for (const item of seriesBData) {
+      //   console.log("打印:", moment(item[0]).format(this.dateFormat), "形变值:", item[1]);
+      // }
+      // for (const item of seriesBData) {
+      //   console.log("打印:", moment(item[0]).format(this.dateFormat), "距离值:", item[1]);
+      // }
+      let addCount = data.length;
+      // A数据
+      if (this.seriesAData.length > seriesAData.length) this.seriesAData.splice(0, addCount);
+      this.seriesAData.push(...seriesAData);
+      // B数据
+      if (this.seriesBData.length > seriesBData.length) this.seriesBData.splice(0, addCount);
+      this.seriesBData.push(...seriesBData);
 
       this.myChart?.setOption(
         {
-          xAxis: { data: this.xAxisData, position: "bottom" },
-          series: [{ data: this.seriesData }]
+          series: [
+            {
+              name: "A",
+              type: "line",
+              showSymbol: false, // 不显示点
+              data: this.seriesAData
+            },
+            {
+              name: "B",
+              type: "line",
+              showSymbol: false, // 不显示点
+              data: this.seriesBData,
+              markLine: {
+                data: [
+                  {
+                    type: "average",
+                    name: "Avg",
+                    label: {
+                      position: "end",
+                      formatter: "{b}: {c}" // {b}=name, {c}=值
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         },
         false,
         false
@@ -316,13 +437,12 @@ export default {
 
     /** 清空表格数据数据 */
     clearChartData() {
-      this.seriesData = [];
-      this.xAxisData = [];
+      this.seriesAData = [];
+      this.seriesBData = [];
       this.handleResize();
       this.myChart?.setOption(
         {
-          xAxis: { data: this.xAxisData, position: "bottom" },
-          series: [{ data: this.seriesData }]
+          series: [{ data: [] }, { data: [] }]
         },
         false,
         false
@@ -348,36 +468,12 @@ export default {
 
     // 清理所有定时器
     clearAllTimers() {
-      console.log("  this.timers:", this.timers);
       this.timers.forEach(id => clearTimeout(id));
       this.timers = [];
-      console.log("RadarImage.所有轮询已停止");
+      console.log("DeformDataChart.所有轮询已停止");
     }
   }
 };
 </script>
 
-<style scoped>
-/* .myChart-container {
-  margin: 0;
-  padding: 0px;
-  background: #333333aa;
-  border-radius: 4px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-} */
-
-button {
-  margin: 0px;
-  padding: 8px 16px;
-  background: #409eff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-button:hover {
-  background: #66b1ff;
-}
-</style>
+<style scoped></style>

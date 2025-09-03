@@ -7,7 +7,6 @@
 
 <script>
 // 按需引入（推荐，体积更小）
-// 按需引入 ECharts 5
 import * as echarts from "echarts/core";
 import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent, MarkLineComponent, MarkPointComponent } from "echarts/components";
 import { LineChart } from "echarts/charts";
@@ -104,6 +103,9 @@ export default {
           text: "当前雷达最新影像数据",
           left: "center"
         },
+        grid: {
+          bottom: 120 // 增加图表底部内边距，为X轴和时间显示留出更多空间
+        },
         tooltip: {
           trigger: "axis",
           axisPointer: { type: "cross" }
@@ -113,7 +115,6 @@ export default {
           {
             type: "category",
             data: [],
-            // axisLabel: { rotate: 45 },
             name: "监测点",
             boundaryGap: false // 控制坐标轴两端是否留白
           }
@@ -132,10 +133,10 @@ export default {
           {
             name: "雷达距离像数据", // 系列名称，用于tooltip的显示
             type: "line", // 折线图
-            // smooth: true, // 是否平滑线显示
             yAxisIndex: 0,
             sampling: "lttb", // 降采样
             data: []
+            // smooth: true, // 是否平滑线显示
           }
         ],
         // 缩放
@@ -150,7 +151,8 @@ export default {
             type: "slider", // 外部滑动条，也可选择显示
             xAxisIndex: 0,
             start: 0,
-            end: 100
+            end: 100,
+            bottom: 50
           }
         ]
       };
@@ -178,20 +180,6 @@ export default {
       }
     },
 
-    /** 更新标记区域 */
-    updateMarkArea() {
-      this.myChart.setOption({
-        series: [
-          {
-            markArea: {
-              data: [this.currentMark],
-              animation: false
-            }
-          }
-        ]
-      });
-    },
-
     /** 窗口大小变化 */
     handleResize() {
       this.myChart?.resize();
@@ -202,10 +190,8 @@ export default {
       this.handleResize();
       // 距离像信号强度数据
       let seriesData = this.imageData;
-      // let data = Array.from({ length: 10000 }, () => Math.floor(Math.random() * 10000) + 1);
       // 下标点位
       let xAxisData = seriesData.map((_, i) => i);
-      // console.log("xAxisData:", xAxisData);
 
       // let seriesTestData = [50, 100, 400, 200];
       // let xAxisDataTest = seriesTestData.map((_, i) => i);
@@ -215,19 +201,16 @@ export default {
       for (const item of radarPointList) {
         pointIndexs.push(item.pointIndex);
       }
-      console.log("雷达点位：", pointIndexs);
       let coords = [];
       for (const index of pointIndexs) {
         coords.push({
           coord: [index, seriesData[index]], // 点的位置
           value: index,
-          name: `点：${index}`
-          // itemStyle: { color: "red" } // 点颜色
+          name: `点：${index}`,
+          itemStyle: { color: "red" } // 点颜色
         });
       }
-      console.log("coords:", coords);
-
-      // console.log("距离像信号强度数据:", data);
+      // console.log("coords:", coords);
       this.myChart.setOption(
         {
           xAxis: {

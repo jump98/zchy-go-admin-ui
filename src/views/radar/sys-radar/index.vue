@@ -33,7 +33,7 @@
               </el-col>
             </el-row>
 
-            <el-table v-loading="loading" :data="sysRadarList" highlight-current-row :row-style="handleRowStyle" @selection-change="onHandleSelectionChange" @current-change="onHandleCurrentChange">
+            <el-table v-loading="loading" :data="sysRadarList" highlight-current-row :row-style="handleRowStyle" @selection-change="onHandleSelectionChange" @row-click="onHandleCurrentChange">
               <!--el-table-column type="selection" width="55" align="center"/-->
               <el-table-column label="编号" width="75" prop="radarId" sortable="custom" />
               <el-table-column label="机构" prop="dept.deptName" :show-overflow-tooltip="true" />
@@ -52,9 +52,9 @@
               </el-table-column>
               <el-table-column label="操作" align="center" width="250" fixed="right">
                 <template slot-scope="scope">
-                  <el-button slot="reference" size="mini" type="primary" @click="onClickDetailRadarBtn(scope.row)"> 详细 </el-button>
-                  <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="success" @click="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
-                  <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="danger" @click="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
+                  <el-button slot="reference" size="mini" type="primary" @click.stop="onClickDetailRadarBtn(scope.row)"> 详细 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:edit']" size="mini" type="success" @click.stop="onClickUpdateRadarBtn(scope.row)"> 修改 </el-button>
+                  <el-button slot="reference" v-permisaction="['radar:sysRadar:remove']" size="mini" type="danger" @click.stop="onClickDeleteRadarBtn(scope.row)"> 删除 </el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -67,11 +67,11 @@
         </el-row>
 
         <!-- 雷达信息弹窗-->
-        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarInfo" />
+        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarRow" />
 
         <el-row style="margin-top: 20px">
           <!-- 显示点位信息  -->
-          <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radar-id="curradarid" :radar-info="radarInfo" />
+          <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radar-id="curradarid" :radar-info="radarRow" />
         </el-row>
       </el-card>
     </template>
@@ -97,8 +97,6 @@ export default {
     return {
       // 当前的雷达ID
       curradarid: 0,
-      // 当前的雷达信息
-      radarInfo: null,
       // 遮罩层
       loading: true,
       // 选中数组
@@ -136,7 +134,7 @@ export default {
         specialKey: undefined,
         deptId: undefined
       },
-      // 表单参数
+      // 选中的雷达数据
       radarRow: {},
       defaultProps: {
         children: "children",
@@ -271,7 +269,7 @@ export default {
         console.log("设置curradarid=0");
         this.curradarid = 0;
       }
-      this.radarInfo = currentRow || null;
+      this.radarRow = currentRow || null;
     },
 
     // 确定按钮

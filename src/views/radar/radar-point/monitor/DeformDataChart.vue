@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-bind="$attrs" :title="title" width="80%" :close-on-click-modal="false" @opened="onOpen" @close="onClose">
+  <div>
     <el-form :inline="true">
       <el-form-item>
         <el-radio-group v-model="queryRadio" size="mini" @input="onRadioInputEvent">
@@ -31,13 +31,11 @@
       </el-form-item>
     </el-form>
 
-    <el-row>
-      <div class="myChart-container">
-        <!-- 折线图容器 -->
-        <div ref="lineChart" style="width: 100%; height: 400px" />
-      </div>
-    </el-row>
-  </el-dialog>
+    <div class="myChart-container">
+      <!-- 折线图容器 -->
+      <div ref="lineChart" style="width: 100%; height: 400px" />
+    </div>
+  </div>
 </template>
 
 <script>
@@ -93,21 +91,22 @@ export default {
   },
   watch: {},
   // 页面加载完成时触发
-  mounted() {},
+  mounted() {
+    this.init();
+  },
   // 组件销毁前
   beforeDestroy() {
-    this.clearAllTimers();
-    this.removeChart();
+    this.clearData();
   },
 
   methods: {
-    async onOpen() {
+    async init() {
       try {
-        // console.log("radarInfo onOpen", this.radarInfo);
-        // console.log("radarPointInfo onOpen", this.radarPointInfo);
-        let { radarName } = this.radarInfo;
-        let { pointName } = this.radarPointInfo;
-        this.title = `${radarName} - 监测点: ${pointName}`;
+        console.log("radarInfo onOpen", this.radarInfo);
+        console.log("radarPointInfo onOpen", this.radarPointInfo);
+        // let { radarName } = this.radarInfo;
+        // let { pointName } = this.radarPointInfo;
+        // this.title = `${radarName} - 监测点: ${pointName}`;
         this.closed = false;
         this.initChart();
         window.addEventListener("resize", this.handleResize);
@@ -116,21 +115,12 @@ export default {
         console.error("初始化报表出错：", error);
       }
     },
-    onClose() {
-      this.close();
-    },
-    close() {
-      console.log("关闭close");
+    clearData() {
       this.clearAllTimers();
       this.removeChart();
       this.closed = true;
-      this.$emit("update:visible", false);
-      this.clearData();
-    },
-
-    // 清空数据
-    clearData() {
       this.maxDate = null;
+      this.$emit("update:visible", false);
     },
 
     // 获取变形点数据
@@ -160,13 +150,10 @@ export default {
 
       try {
         const resp = await getRadarPointDeformData(param);
-        console.log("resp:", resp);
         if (!resp) return;
         let list = resp?.data?.list || [];
         let last_time = resp?.data?.last_time;
-        console.log("list:", list);
-        console.log("list.leng:", list.length);
-        console.log("list:", list);
+        console.log("查询形变数据结果", list.length);
         if (list.length > 0) {
           // 如果有maxDate，防止插入重复数据
           if (this.maxDate) {
@@ -257,7 +244,8 @@ export default {
           }
         },
         grid: {
-          bottom: 120 // 增加图表底部内边距，为X轴和时间显示留出更多空间
+          bottom: 120, // 增加图表底部内边距，为X轴和时间显示留出更多空间
+          left: "3%" // ← 绘图区距离容器左边 3%
         },
         title: {
           text: "形变数据",
@@ -297,7 +285,14 @@ export default {
         },
         series: [
           {
-            name: "形变数据", // 系列名称，用于tooltip的显示
+            name: "A",
+            type: "line", // 折线图
+            yAxisIndex: 0,
+            sampling: "lttb", // 降采样
+            data: []
+          },
+          {
+            name: "B",
             type: "line", // 折线图
             yAxisIndex: 0,
             sampling: "lttb", // 降采样

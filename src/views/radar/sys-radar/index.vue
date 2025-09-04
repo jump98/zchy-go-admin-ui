@@ -66,14 +66,14 @@
           </el-col>
         </el-row>
 
-        <!-- 雷达信息弹窗-->
-        <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarRow" />
-
         <el-row style="margin-top: 20px">
           <!-- 显示点位信息  -->
           <RadarPoint v-show="curradarid != 0" ref="refRadarPoint" :radar-id="curradarid" :radar-info="radarRow" />
         </el-row>
       </el-card>
+
+      <!-- 雷达信息弹窗-->
+      <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="radarRow" />
     </template>
   </BasicLayout>
 </template>
@@ -229,7 +229,7 @@ export default {
       };
     },
     /** 修改按钮操作 */
-    async onClickUpdateRadarBtn(row) {
+    onClickUpdateRadarBtn(row) {
       // console.log("点击修改:", row);
       if (!row.radarId) return;
       this.radarRow = row;
@@ -238,7 +238,7 @@ export default {
     },
 
     // 点击详细按钮
-    async onClickDetailRadarBtn(row) {
+    onClickDetailRadarBtn(row) {
       console.log("row:", row);
       this.radarRow = row;
       this.openRadarItemDialog = true;

@@ -1,58 +1,54 @@
 <template>
-  <div>
-    <el-dialog v-bind="$attrs" :title="title" width="70%" :close-on-click-modal="false" @open="onOpen" @close="onClose">
-      <el-descriptions v-if="radarInfo && deviceInfo" :column="4" title="雷达设备信息" direction="horizontal" border>
-        <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item>
-        <el-descriptions-item label="设备名称">{{ radarInfo.radarName }}</el-descriptions-item>
-        <el-descriptions-item label="逻辑程序版本">{{ deviceInfo.fpga_version }}</el-descriptions-item>
-        <el-descriptions-item label="ARM固定版本">{{ deviceInfo.ps_version }}</el-descriptions-item>
-        <el-descriptions-item label="激活状态">
-          <el-tag v-if="radarInfo.status == '2'" type="success" size="small">已激活</el-tag>
-          <el-tag v-else size="small" type="danger">未激活</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="系统镜像版本">{{ deviceInfo.image_version }}</el-descriptions-item>
-        <el-descriptions-item label="生产序列号">{{ deviceInfo.serial_number }}</el-descriptions-item>
-        <el-descriptions-item label="SIM卡IMEI号">{{ deviceInfo.sim_IMEI }}</el-descriptions-item>
+  <el-dialog v-bind="$attrs" :title="title" width="70%" :close-on-click-modal="false" @open="onOpen" @close="onClose">
+    <el-descriptions v-if="radarInfo && deviceInfo" :column="4" title="雷达设备信息" direction="horizontal" border>
+      <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item>
+      <el-descriptions-item label="设备名称">{{ radarInfo.radarName }}</el-descriptions-item>
+      <el-descriptions-item label="逻辑程序版本">{{ deviceInfo.fpga_version }}</el-descriptions-item>
+      <el-descriptions-item label="ARM固定版本">{{ deviceInfo.ps_version }}</el-descriptions-item>
+      <el-descriptions-item label="激活状态">
+        <el-tag v-if="radarInfo.status == '2'" type="success" size="small">已激活</el-tag>
+        <el-tag v-else size="small" type="danger">未激活</el-tag>
+      </el-descriptions-item>
+      <el-descriptions-item label="系统镜像版本">{{ deviceInfo.image_version }}</el-descriptions-item>
+      <el-descriptions-item label="生产序列号">{{ deviceInfo.serial_number }}</el-descriptions-item>
+      <el-descriptions-item label="SIM卡IMEI号">{{ deviceInfo.sim_IMEI }}</el-descriptions-item>
 
-        <el-descriptions-item label="厂商">{{ radarInfo.vender }}</el-descriptions-item>
-        <el-descriptions-item label="经度">{{ radarInfo.lng }}</el-descriptions-item>
-        <el-descriptions-item label="纬度">{{ radarInfo.lat }}</el-descriptions-item>
-        <el-descriptions-item label="高程">{{ radarInfo.alt }}</el-descriptions-item>
-        <el-descriptions-item label="备注">{{ radarInfo.remark }}</el-descriptions-item>
-      </el-descriptions>
+      <el-descriptions-item label="厂商">{{ radarInfo.vender }}</el-descriptions-item>
+      <el-descriptions-item label="经度">{{ radarInfo.lng }}</el-descriptions-item>
+      <el-descriptions-item label="纬度">{{ radarInfo.lat }}</el-descriptions-item>
+      <el-descriptions-item label="高程">{{ radarInfo.alt }}</el-descriptions-item>
+      <el-descriptions-item label="备注">{{ radarInfo.remark }}</el-descriptions-item>
+    </el-descriptions>
 
-      <!-- <el-divider /> -->
+    <el-descriptions v-if="radarInfo && stateInfo" :column="4" title="雷达状态信息" direction="horizontal" border style="margin-top: 20px">
+      <!-- <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item> -->
+      <el-descriptions-item label="磁盘使用率" :span="1">
+        <el-progress :stroke-width="15" :percentage="stateInfo.diskRatio" />
+        <div>{{ formatDisk() }}</div>
+      </el-descriptions-item>
+      <!-- <el-descriptions-item label="磁盘使用率">{{ formatBytes(stateInfo.disk_total) }}</el-descriptions-item> -->
+      <!-- <el-descriptions-item label="磁盘剩余容量">{{ formatBytes(stateInfo.disk_free) }}</el-descriptions-item> -->
+      <el-descriptions-item label="内存使用率">
+        <el-progress :stroke-width="15" :percentage="stateInfo.MemoryRatio" />
+        <div>{{ formatMemory() }}</div>
+      </el-descriptions-item>
+      <!-- <el-descriptions-item label="内存总容量">{{ formatBytes(stateInfo.ram_total) }}</el-descriptions-item> -->
+      <!-- <el-descriptions-item label="内存剩余容量">{{ formatBytes(stateInfo.ram_free) }}</el-descriptions-item> -->
+      <el-descriptions-item label="SIM卡状态">
+        <el-tag v-if="stateInfo.sim_state === 0" type="success" size="small">正常</el-tag>
+        <el-tag v-else size="small" type="danger">异常</el-tag>
+      </el-descriptions-item>
+      <el-descriptions-item label="SIM接收信号强度">{{ formatSimRSSI(stateInfo.sim_RSSI) }}</el-descriptions-item>
 
-      <el-descriptions v-if="radarInfo && stateInfo" :column="4" title="雷达状态信息" direction="horizontal" border style="margin-top: 20px">
-        <!-- <el-descriptions-item label="设备ID">{{ radarInfo.radarKey }}</el-descriptions-item> -->
-        <el-descriptions-item label="磁盘使用率" :span="1">
-          <el-progress :stroke-width="15" :percentage="stateInfo.diskRatio" />
-          <div>{{ formatDisk() }}</div>
-        </el-descriptions-item>
-        <!-- <el-descriptions-item label="磁盘使用率">{{ formatBytes(stateInfo.disk_total) }}</el-descriptions-item> -->
-        <!-- <el-descriptions-item label="磁盘剩余容量">{{ formatBytes(stateInfo.disk_free) }}</el-descriptions-item> -->
-        <el-descriptions-item label="内存使用率">
-          <el-progress :stroke-width="15" :percentage="stateInfo.MemoryRatio" />
-          <div>{{ formatMemory() }}</div>
-        </el-descriptions-item>
-        <!-- <el-descriptions-item label="内存总容量">{{ formatBytes(stateInfo.ram_total) }}</el-descriptions-item> -->
-        <!-- <el-descriptions-item label="内存剩余容量">{{ formatBytes(stateInfo.ram_free) }}</el-descriptions-item> -->
-        <el-descriptions-item label="SIM卡状态">
-          <el-tag v-if="stateInfo.sim_state === 0" type="success" size="small">正常</el-tag>
-          <el-tag v-else size="small" type="danger">异常</el-tag>
-        </el-descriptions-item>
-        <el-descriptions-item label="SIM接收信号强度">{{ formatSimRSSI(stateInfo.sim_RSSI) }}</el-descriptions-item>
-
-        <el-descriptions-item label="12V电压">{{ `${stateInfo.voltageObj["12V"]}V` }}</el-descriptions-item>
-        <el-descriptions-item label="5.3V电压">{{ `${stateInfo.voltageObj["5V3"]}V` }}</el-descriptions-item>
-        <el-descriptions-item label="2.1V电压">{{ `${stateInfo.voltageObj["2V1"]}V` }}</el-descriptions-item>
-        <el-descriptions-item label="12V电流">{{ `${stateInfo.currentObj["12V"]}A` }}</el-descriptions-item>
-        <el-descriptions-item label="主板温度">{{ `${stateInfo.temperatureObj["local"]}°C` }}</el-descriptions-item>
-        <el-descriptions-item label="设备外壳温度">{{ `${stateInfo.temperatureObj["PCB"]}°C` }}</el-descriptions-item>
-        <el-descriptions-item label="处理器温度">{{ `${stateInfo.temperatureObj["ZYNQ"]}°C` }}</el-descriptions-item>
-      </el-descriptions>
-    </el-dialog>
-  </div>
+      <el-descriptions-item label="12V电压">{{ `${stateInfo.voltageObj["12V"]}V` }}</el-descriptions-item>
+      <el-descriptions-item label="5.3V电压">{{ `${stateInfo.voltageObj["5V3"]}V` }}</el-descriptions-item>
+      <el-descriptions-item label="2.1V电压">{{ `${stateInfo.voltageObj["2V1"]}V` }}</el-descriptions-item>
+      <el-descriptions-item label="12V电流">{{ `${stateInfo.currentObj["12V"]}A` }}</el-descriptions-item>
+      <el-descriptions-item label="主板温度">{{ `${stateInfo.temperatureObj["local"]}°C` }}</el-descriptions-item>
+      <el-descriptions-item label="设备外壳温度">{{ `${stateInfo.temperatureObj["PCB"]}°C` }}</el-descriptions-item>
+      <el-descriptions-item label="处理器温度">{{ `${stateInfo.temperatureObj["ZYNQ"]}°C` }}</el-descriptions-item>
+    </el-descriptions>
+  </el-dialog>
 </template>
 
 <script>
@@ -77,6 +73,7 @@ export default {
   watch: {},
   methods: {
     onOpen() {
+      console.log("onOpen");
       console.log("RadarItem onOpen", this.radarInfo);
       let { dept, radarId } = this.radarInfo;
       this.title = dept.deptName;

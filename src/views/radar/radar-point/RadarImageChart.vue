@@ -104,7 +104,9 @@ export default {
           left: "center"
         },
         grid: {
-          bottom: 120 // 增加图表底部内边距，为X轴和时间显示留出更多空间
+          bottom: 120, // 增加图表底部内边距，为X轴和时间显示留出更多空间
+          left: "5%", // ← 绘图区距离容器左边 3%
+          right: "5%" // ← 绘图区距离容器左边 3%
         },
         tooltip: {
           trigger: "axis",

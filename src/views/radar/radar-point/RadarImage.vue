@@ -1,5 +1,5 @@
 <template>
-  <RadarImageChart v-show="showChart" :radar-point-list="radarPointList" :image-data="imageData" :image-time="imageTime" @ImageIndexClick="onImageIndexClick" />
+  <RadarImageChart v-if="showChart" :radar-point-list="radarPointList" :image-data="imageData" :image-time="imageTime" @ImageIndexClick="onImageIndexClick" />
 </template>
 
 <script>
@@ -26,7 +26,7 @@ export default {
   data() {
     return {
       timerId: null,
-      imageData: [], // 你的2000条数据数组
+      imageData: [], // 数据数组
       imageTime: "", // 服务器时间
       showChart: false // 显示报表
     };

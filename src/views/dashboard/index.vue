@@ -18,9 +18,9 @@
         </el-select>
       </div>
       <!-- 雷达信息弹窗-->
-      <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="clickRadarRow" />
+      <RadarItemDialog v-if="openRadarItemDialog" :visible.sync="openRadarItemDialog" :radar-info="clickRadarRow" />
       <!-- 监控点信息弹窗-->
-      <DeformDataChart :visible.sync="showDeformDataChart" :radar-info="radarRow" :radar-point-info="clickRadarPointRow" />
+      <RadarPointDetailDialog v-if="openRedarPointDetailDialog" :visible.sync="openRedarPointDetailDialog" :radar-info="radarRow" :radar-point-info="clickRadarPointRow" />
     </div>
   </div>
 </template>
@@ -29,7 +29,7 @@
 import { RadarPointTag, RadarTag, TCesiem } from "@/utils/tcesium/tcesium";
 import { getRadarPointList } from "@/api/admin/radar-point";
 import { getRadarList } from "@/api/admin/sys-radar";
-import DeformDataChart from "../radar/radar-point-deform/DeformDataChart.vue";
+import RadarPointDetailDialog from "../radar/radar-point/RadarPointDetailDialog.vue";
 import RadarItemDialog from "../radar/sys-radar/RadarItemDialog.vue";
 
 // 引用public下面的Cesium.js
@@ -38,7 +38,7 @@ const Cesium = window["Cesium"];
 export default {
   name: "Dashboard",
   components: {
-    DeformDataChart,
+    RadarPointDetailDialog,
     RadarItemDialog
   },
   data() {
@@ -66,7 +66,7 @@ export default {
       },
       openRadarItemDialog: false, // 控制雷达信息弹出框显示
       showRadarAlarmDialog: false, // 控制雷达报警信息弹窗
-      showDeformDataChart: false // 控制雷达点位弹出框显示
+      openRedarPointDetailDialog: false // 控制雷达点位弹出框显示
     };
   },
   computed: {},
@@ -186,7 +186,7 @@ export default {
             }
             if (tag === RadarPointTag) {
               this.clickRadarPointRow = this.radarPointList.find(item => item.pointKey === id);
-              this.showDeformDataChart = true;
+              this.openRedarPointDetailDialog = true;
             }
           });
         });

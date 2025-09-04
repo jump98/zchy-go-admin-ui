@@ -63,7 +63,7 @@
         />
 
         <!-- 监控点信息弹窗-->
-        <DeformDataChart :visible.sync="showDeformDataChart" :radar-info="radarInfo" :radar-point-info="radarPointRow" />
+        <RadarPointDetailDialog v-if="openRedarPointDetailDialog" :visible.sync="openRedarPointDetailDialog" :radar-info="radarInfo" :radar-point-info="radarPointRow" />
       </el-card>
     </template>
   </BasicLayout>
@@ -74,7 +74,7 @@ import { delRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
 
 import { getRadarList } from "@/api/admin/sys-radar";
 import RadarImage from "./RadarImage.vue";
-import DeformDataChart from "../radar-point-deform/DeformDataChart.vue";
+import RadarPointDetailDialog from "./RadarPointDetailDialog.vue";
 import PointEditDialog from "./PointEditDialog.vue";
 import { checkPermission } from "@/utils/permission";
 export default {
@@ -82,7 +82,7 @@ export default {
   components: {
     RadarImage,
     PointEditDialog,
-    DeformDataChart
+    RadarPointDetailDialog
   },
   props: {
     radarId: {
@@ -134,7 +134,7 @@ export default {
       },
       // 表单参数
       radarPointRow: {},
-      showDeformDataChart: false // 控制雷达点位弹出框显示
+      openRedarPointDetailDialog: false // 控制雷达点位弹出框显示
     };
   },
 
@@ -257,7 +257,7 @@ export default {
     onClickXingBianBtn(row) {
       console.log("点击形变数据:", row);
       this.radarPointRow = row;
-      this.showDeformDataChart = true;
+      this.openRedarPointDetailDialog = true;
     }
   }
 };

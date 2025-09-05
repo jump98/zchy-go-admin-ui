@@ -65,6 +65,7 @@ export default {
   data() {
     return {
       title: "",
+      closed: false,
       deviceInfo: null, // 设备信息
       stateInfo: null, // 状态信息
       timers: [] // 统一管理定时器
@@ -77,6 +78,7 @@ export default {
       console.log("RadarItem onOpen", this.radarInfo);
       let { dept, radarId } = this.radarInfo;
       this.title = dept.deptName;
+      this.closed = false;
       this.getRadarDeviceInfo(radarId);
       this.getRadarStateInfo(radarId);
     },
@@ -85,6 +87,7 @@ export default {
     },
     close() {
       console.log("关闭close");
+      this.closed = true;
       this.clearAllTimers();
       this.$emit("update:visible", false);
     },
@@ -165,6 +168,7 @@ export default {
     // 添加定时器并保存到数组
     addTimeout(fn, delay) {
       if (this.timers.length > 0) return;
+      if (this.closed) return;
       const id = setTimeout(() => {
         fn();
         // 一次性定时器执行后可移除

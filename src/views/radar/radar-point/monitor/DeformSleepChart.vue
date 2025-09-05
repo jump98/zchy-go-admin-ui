@@ -37,7 +37,7 @@ echarts.use([
   UniversalTransition
 ]);
 export default {
-  name: "DeformDataChart",
+  name: "DeformSleepChart",
   components: { QueryParam },
   props: {
     radarInfo: {

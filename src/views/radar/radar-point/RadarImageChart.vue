@@ -63,7 +63,6 @@ export default {
   },
 
   mounted() {
-    console.log("myChart.mounted:", this.imageData);
     this.initChart();
     window.addEventListener("resize", this.handleResize);
   },

@@ -18,7 +18,7 @@
         </el-select>
       </div>
       <!-- 雷达信息弹窗-->
-      <RadarItemDialog v-if="openRadarItemDialog" :visible.sync="openRadarItemDialog" :radar-info="clickRadarRow" />
+      <RadarItemDialog :visible.sync="openRadarItemDialog" :radar-info="clickRadarRow" />
       <!-- 监控点信息弹窗-->
       <RadarPointDetailDialog v-if="openRedarPointDetailDialog" :visible.sync="openRedarPointDetailDialog" :radar-info="radarRow" :radar-point-info="clickRadarPointRow" />
     </div>

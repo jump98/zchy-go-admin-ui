@@ -92,7 +92,7 @@
 
 <script>
 import { formValidation } from "@/utils/validate";
-import { addRadarPoint, updateRadarPoint } from "@/api/admin/radar-point";
+import { addRadarPoint, updateRadarPoint } from "@/api/radar/radar-point";
 
 export default {
   name: "RadarEditDialog",

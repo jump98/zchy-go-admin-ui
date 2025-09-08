@@ -51,7 +51,7 @@
 <script>
 import Treeselect from "@riophae/vue-treeselect";
 import { formValidation } from "@/utils/validate";
-import { addSysRadar, updateSysRadar } from "@/api/admin/sys-radar";
+import { addSysRadar, updateSysRadar } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarEditDialog",

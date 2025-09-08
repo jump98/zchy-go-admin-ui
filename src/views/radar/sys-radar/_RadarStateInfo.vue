@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { getRadarStateInfo } from "@/api/admin/sys-radar";
+import { getRadarStateInfo } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarStateInfo",

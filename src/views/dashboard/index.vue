@@ -27,8 +27,8 @@
 
 <script>
 import { RadarPointTag, RadarTag, TCesiem } from "@/utils/tcesium/tcesium";
-import { getRadarPointList } from "@/api/admin/radar-point";
-import { getRadarList } from "@/api/admin/sys-radar";
+import { getRadarPointList } from "@/api/radar/radar-point";
+import { getRadarList } from "@/api/radar/sys-radar";
 import RadarPointDetailDialog from "../radar/radar-point/RadarPointDetailDialog.vue";
 import RadarItemDialog from "../radar/sys-radar/RadarItemDialog.vue";
 

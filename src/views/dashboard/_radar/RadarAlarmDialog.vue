@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import { getRadarAlarmsBefore } from "@/api/admin/sys-radar";
+import { getRadarAlarmsBefore } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarAlarmDialog",

@@ -70,9 +70,9 @@
 </template>
 
 <script>
-import { delRadarPoint, getRadarPointList } from "@/api/admin/radar-point";
+import { delRadarPoint, getRadarPointList } from "@/api/radar/radar-point";
 
-import { getRadarList } from "@/api/admin/sys-radar";
+import { getRadarList } from "@/api/radar/sys-radar";
 import RadarImage from "./RadarImage.vue";
 import RadarPointDetailDialog from "./RadarPointDetailDialog.vue";
 import PointEditDialog from "./PointEditDialog.vue";

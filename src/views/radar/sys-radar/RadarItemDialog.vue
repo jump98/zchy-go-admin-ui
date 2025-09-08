@@ -53,7 +53,7 @@
 
 <script>
 import moment from "moment";
-import { getRadarDevInfo, getRadarStateInfo } from "@/api/admin/sys-radar";
+import { getRadarDevInfo, getRadarStateInfo } from "@/api/radar/sys-radar";
 export default {
   name: "RadarItemDialog",
   props: {

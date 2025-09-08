@@ -5,7 +5,7 @@
 <script>
 import moment from "moment";
 import RadarImageChart from "./RadarImageChart.vue";
-import { getSysRadarImage } from "@/api/admin/sys-radar";
+import { getSysRadarImage } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarImage",

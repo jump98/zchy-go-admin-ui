@@ -26,6 +26,7 @@
   ],
   "dependencies": {
     "@riophae/vue-treeselect": "0.4.0",
+    "@types/minimatch": "^6.0.0",
     "awe-dnd": "^0.3.4",
     "axios": "0.21.1",
     "clipboard": "2.0.6",
@@ -41,6 +42,7 @@
     "jsonlint": "1.6.3",
     "jszip": "3.5.0",
     "loadjs": "^4.3.0",
+    "minimatch": "^10.0.3",
     "moment": "^2.27.0",
     "normalize.css": "8.0.1",
     "nprogress": "0.2.0",

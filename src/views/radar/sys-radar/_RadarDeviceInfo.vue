@@ -13,7 +13,7 @@
 </template>
 
 <script>
-import { getRadarDevInfo } from "@/api/admin/sys-radar";
+import { getRadarDevInfo } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarDeviceInfo",

@@ -12,7 +12,7 @@
 
 <script>
 import QueryParam from "./QueryParam.vue";
-import { getDeformationAcceleration } from "@/api/admin/radar-point";
+import { getDeformationAcceleration } from "@/api/radar/radar-point";
 import moment from "moment";
 // import { TestData } from "@/utils/test-demo";
 

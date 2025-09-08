@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import { delSysRadar, getRadarList, updateSysRadar } from "@/api/admin/sys-radar";
+import { delSysRadar, getRadarList, updateSysRadar } from "@/api/radar/sys-radar";
 
 import { treeselect } from "@/api/admin/sys-dept";
 

@@ -3,7 +3,7 @@ import request from "@/utils/request";
 // 查询RadarPoint列表
 export function getRadarPointList(query) {
   return request({
-    url: "/api/v1/radar-point",
+    url: "/api/v1/radar_point/getList",
     method: "get",
     params: query
   });
@@ -15,7 +15,7 @@ export function getRadarPointList(query) {
  */
 export function listDeptRadarPoint(query) {
   return request({
-    url: "/api/v1/radar-point/dept",
+    url: "/api/v1/radar_point/getDeptList",
     method: "get",
     params: query
   });
@@ -23,7 +23,7 @@ export function listDeptRadarPoint(query) {
 // 查询部门下的RadarPoint形变数据
 export function listDeptRadarPointDeformationData(query) {
   return request({
-    url: "/api/v1/radar-point-deformation",
+    url: "/api/v1/radar_point/deformation/data",
     method: "get",
     params: query
   });
@@ -31,7 +31,7 @@ export function listDeptRadarPointDeformationData(query) {
 // 查询RadarPoint详细
 export function getRadarPoint(id) {
   return request({
-    url: "/api/v1/radar-point/" + id,
+    url: "/api/v1/radar_point/getById/" + id,
     method: "get"
   });
 }
@@ -39,7 +39,7 @@ export function getRadarPoint(id) {
 // 新增RadarPoint
 export function addRadarPoint(data) {
   return request({
-    url: "/api/v1/radar-point",
+    url: "/api/v1/radar_point/add",
     method: "post",
     data: data
   });
@@ -48,7 +48,7 @@ export function addRadarPoint(data) {
 // 修改RadarPoint
 export function updateRadarPoint(data) {
   return request({
-    url: "/api/v1/radar-point/" + data.id,
+    url: "/api/v1/radar_point/update/" + data.id,
     method: "put",
     data: data
   });
@@ -57,7 +57,7 @@ export function updateRadarPoint(data) {
 // 删除RadarPoint
 export function delRadarPoint(data) {
   return request({
-    url: "/api/v1/radar-point",
+    url: "/api/v1/radar_point/delete",
     method: "delete",
     data: data
   });
@@ -70,7 +70,20 @@ export function delRadarPoint(data) {
  */
 export function getRadarPointDeformData(data) {
   return request({
-    url: "/api/v1/radar-point/deformation-data",
+    url: "/api/v1/radar_point/getDeformationData",
+    method: "post",
+    data: data
+  });
+}
+
+/**
+ * 获取形变速率数据
+ * @param {*} data
+ * @returns
+ */
+export function getDeformationVelocity(data) {
+  return request({
+    url: "/api/v1/radar_point/getDeformationVelocity",
     method: "post",
     data: data
   });

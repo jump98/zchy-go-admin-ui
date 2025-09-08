@@ -290,7 +290,7 @@ class tCesiem {
       tag: RadarTag,
       // 雷达图标（亮蓝色）
       billboard: {
-        image: "/images/radar/radar.png",
+        image: "/images/radar/radar2.png",
         width: 28,
         height: 28,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
@@ -331,7 +331,7 @@ class tCesiem {
       tag: RadarPointTag,
       // 点位图标（亮白色）
       billboard: {
-        image: "/images/radar/radar_point.png",
+        image: "/images/radar/radar_point1.1.png",
         width: 20,
         height: 20,
         verticalOrigin: Cesium.VerticalOrigin.BOTTOM,

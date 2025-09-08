@@ -41,7 +41,7 @@
       </el-form-item>
 
       <!-- 数据类型 -->
-      <el-form-item label="数据类型">
+      <el-form-item v-if="localShowDataType == true" label="数据类型">
         <el-select v-model="localDataType" size="mini" style="width: 80px" @change="onChangeDataTypeEvent">
           <el-option v-for="item in dataTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
@@ -70,12 +70,18 @@ export default {
     timeType: {
       type: String,
       default: () => "seconds"
+    },
+    /** 是否隐藏数据类型选择 */
+    showDataType: {
+      type: Boolean,
+      default: () => true
     }
   },
   data() {
     return {
       /** 输入时间 */
       inputDate: [],
+      // 选择项
       dataTypeOptions: [
         {
           value: 1,
@@ -106,7 +112,8 @@ export default {
       ],
       localTimeHours: this.timeHours,
       localDataType: this.dataType,
-      localTimeType: this.timeType
+      localTimeType: this.timeType,
+      localShowDataType: this.showDataType
     };
   },
 
@@ -144,9 +151,16 @@ export default {
       }
       return { startTime, endTime };
     },
+
     // 发送事件数据
     emitChangeTimeEvent() {
       let { startTime, endTime } = this.getQueryDate();
+      if (this.localTimeHours != 1) {
+        this.localDataType = 1; // 非1小时查询，数据类型只能是静态
+        this.localShowDataType = false;
+      } else {
+        this.localShowDataType = true;
+      }
       let param = {
         startTime,
         endTime,

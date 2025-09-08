@@ -1,17 +1,17 @@
 <template>
   <el-tabs v-model="actionName" tab-position="top" type="card" @tab-click="onHandleClick">
-    <el-tab-pane label="形变监测" name="1">
+    <el-tab-pane label="形变曲线" name="1">
       <DeformDataChart v-if="actionName == 1" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
     </el-tab-pane>
-    <el-tab-pane label="形变速度监测" name="2">
+    <el-tab-pane label="形变速度曲线" name="2">
       <DeformSleepChart v-if="actionName == 2" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
     </el-tab-pane>
-    <el-tab-pane label="形变加速度监测" name="3">形变加速度监测</el-tab-pane>
+    <el-tab-pane label="形变加速度曲线" name="3">形变加速度监测</el-tab-pane>
   </el-tabs>
 </template>
 <script>
 import DeformDataChart from "./DeformDataChart.vue";
-import DeformSleepChart from "./DeformSleepChart.vue";
+import DeformSleepChart from "./DeformVelocityChart.vue";
 
 export default {
   name: "RadarPointMoniror",

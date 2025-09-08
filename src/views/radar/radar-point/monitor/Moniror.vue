@@ -6,16 +6,23 @@
     <el-tab-pane label="形变速度曲线" name="2">
       <DeformSleepChart v-if="actionName == 2" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
     </el-tab-pane>
-    <el-tab-pane label="形变加速度曲线" name="3">形变加速度监测</el-tab-pane>
+    <el-tab-pane label="形变加速度曲线" name="3">
+      <DeformAccelerationChat v-if="actionName == 3" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
+    </el-tab-pane>
+    <el-tab-pane label="形变距离曲线" name="4">
+      <DeformDistanceChat v-if="actionName == 4" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
+    </el-tab-pane>
   </el-tabs>
 </template>
 <script>
 import DeformDataChart from "./DeformDataChart.vue";
 import DeformSleepChart from "./DeformVelocityChart.vue";
+import DeformAccelerationChat from "./DeformAccelerationChat.vue";
+import DeformDistanceChat from "./DeformDistanceChat.vue";
 
 export default {
   name: "RadarPointMoniror",
-  components: { DeformDataChart, DeformSleepChart },
+  components: { DeformDataChart, DeformSleepChart, DeformAccelerationChat, DeformDistanceChat },
   props: {
     radarInfo: {
       type: Object,

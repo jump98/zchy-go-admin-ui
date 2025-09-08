@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 查询参数UI -->
-    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeType" @changeTimeEvent="onChangeTimeEvent" />
+    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeUnit" @changeTimeEvent="onChangeTimeEvent" />
 
     <div class="myChart-container">
       <!-- 折线图容器 -->
@@ -37,7 +37,7 @@ echarts.use([
   UniversalTransition
 ]);
 export default {
-  name: "DeformDataChart",
+  name: "DeformDataChart", // 形变曲线
   components: { QueryParam },
   props: {
     radarInfo: {
@@ -69,7 +69,7 @@ export default {
       /** 数据类型[1=静态，2=动态[追加查询]] */
       dataType: 2, //
       /** 时间颗粒度类型：[seconds,minutes,hours,days] */
-      timeType: "seconds"
+      timeUnit: "seconds"
     };
   },
   watch: {},
@@ -105,11 +105,11 @@ export default {
     // 查询参数改变事件
     onChangeTimeEvent(event) {
       console.log("接受查询参数改变事件：", event);
-      let { startTime, endTime, dataType, timeType, timeHours } = event;
+      let { startTime, endTime, dataType, timeUnit, timeHours } = event;
       this.startTime = startTime;
       this.endTime = endTime;
       this.dataType = dataType;
-      this.timeType = timeType;
+      this.timeUnit = timeUnit;
       this.timeHours = timeHours;
       this.requeryRadarPointData();
     },
@@ -146,7 +146,7 @@ export default {
         startTime: moment(startTime).format(this.dateFormat),
         endTime: moment(endTime).format(this.dateFormat),
         hours: Number(this.timeHours), // 查询最近几小时（单位：小时）
-        timeType: this.timeType
+        timeUnit: this.timeUnit
       };
 
       try {
@@ -156,13 +156,13 @@ export default {
         let lastTime = resp?.data?.lastTime;
 
         // 后续需要改成RequestId来判断，比较靠谱
-        if (this.timeHours != param.hours || this.timeType != param.timeType || this.dataType != dataType) {
+        if (this.timeHours != param.hours || this.timeUnit != param.timeUnit || this.dataType != dataType) {
           console.log("查询参数已经改变，查询结果丢弃");
           return;
         }
 
         // 测试数据
-        // let resp = TestData.GetPointDeformData(this.timeType, this.seriesAData.length != 0, this.maxDate);
+        // let resp = TestData.GetPointDeformData(this.timeUnit, this.seriesAData.length != 0, this.maxDate);
         // if (!resp) return;
         // let list = resp?.list || [];
         // let lastTime = resp?.lastTime;
@@ -174,7 +174,7 @@ export default {
           if (this.maxDate) {
             let t1 = moment(lastTime, this.dateFormat);
             let t2 = moment(this.maxDate, this.dateFormat);
-            if (t1.isSame(t2, this.timeType)) {
+            if (t1.isSame(t2, this.timeUnit)) {
               console.log("查询的结果跟上一次的相同，不追加显示数据");
             } else {
               console.log("实时累加数据:", moment(list[0].time).format(this.dateFormat));
@@ -374,7 +374,7 @@ export default {
         },
         boundaryGap: false, // 防止自动留白生成额外刻度
         minInterval: (() => {
-          switch (this.timeType) {
+          switch (this.timeUnit) {
             case "days":
               return 3600 * 1000 * 24; // 最小 12 小时一个刻度
             case "hours":
@@ -389,7 +389,7 @@ export default {
         axisLabel: {
           formatter: value => {
             const m = moment(value);
-            switch (this.timeType) {
+            switch (this.timeUnit) {
               case "days":
                 // 年月日 → 一行
                 return m.format("YYYY-MM-DD");
@@ -441,7 +441,7 @@ export default {
       ];
 
       // 如果是查询最近1小时且时间颗粒度为秒，则只显示平均曲线
-      if (this.timeHours == "1" && this.timeType == "seconds") {
+      if (this.timeHours == "1" && this.timeUnit == "seconds") {
         legendData = ["形变曲线"];
         seriesOption = [
           {

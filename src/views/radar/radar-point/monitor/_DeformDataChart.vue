@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 查询参数UI -->
-    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeType" @changeTimeEvent="onChangeTimeEvent" />
+    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeUnit" @changeTimeEvent="onChangeTimeEvent" />
 
     <div class="myChart-container">
       <!-- 折线图容器 -->
@@ -68,7 +68,7 @@ export default {
       /** 数据类型[1=静态，2=动态[追加查询]] */
       dataType: 1, //
       /** 时间颗粒度类型：[seconds,minutes,hours,days] */
-      timeType: "seconds"
+      timeUnit: "seconds"
     };
   },
   watch: {},
@@ -104,11 +104,11 @@ export default {
     // 查询参数改变事件
     onChangeTimeEvent(event) {
       console.log("接受查询参数改变事件：", event);
-      let { startTime, endTime, dataType, timeType, timeHours } = event;
+      let { startTime, endTime, dataType, timeUnit, timeHours } = event;
       this.startTime = startTime;
       this.endTime = endTime;
       this.dataType = dataType;
-      this.timeType = timeType;
+      this.timeUnit = timeUnit;
       this.timeHours = timeHours;
       this.requeryRadarPointData();
     },
@@ -144,7 +144,7 @@ export default {
         startTime: moment(startTime).format(this.dateFormat),
         endTime: moment(endTime).format(this.dateFormat),
         hours: Number(this.timeHours), // 查询最近几小时（单位：小时）
-        timeType: this.timeType
+        timeUnit: this.timeUnit
       };
 
       try {
@@ -154,7 +154,7 @@ export default {
         let last_time = resp?.data?.last_time;
 
         // 测试数据
-        // let resp = TestData.GetPointDeformData(this.timeType, this.seriesAData.length != 0, this.maxDate);
+        // let resp = TestData.GetPointDeformData(this.timeUnit, this.seriesAData.length != 0, this.maxDate);
         // if (!resp) return;
         // let list = resp?.list || [];
         // let last_time = resp?.last_time;
@@ -166,7 +166,7 @@ export default {
           if (this.maxDate) {
             let t1 = moment(last_time, this.dateFormat);
             let t2 = moment(this.maxDate, this.dateFormat);
-            if (t1.isSame(t2, this.timeType)) {
+            if (t1.isSame(t2, this.timeUnit)) {
               console.log("查询的结果跟上一次的相同，不追加显示数据");
             } else {
               console.log("实时累加数据:", moment(list[0].SvrTime).format(this.dateFormat));
@@ -385,7 +385,7 @@ export default {
             max: new Date(this.seriesAData[this.seriesAData.length - 1][0]), // 最新一条
             boundaryGap: false, // 防止自动留白生成额外刻度
             minInterval: (() => {
-              switch (this.timeType) {
+              switch (this.timeUnit) {
                 case "days":
                   return 3600 * 1000 * 24; // 最小 12 小时一个刻度
                 case "hours":
@@ -400,7 +400,7 @@ export default {
             axisLabel: {
               formatter: value => {
                 const m = moment(value);
-                switch (this.timeType) {
+                switch (this.timeUnit) {
                   case "days":
                     // 年月日 → 一行
                     return m.format("YYYY-MM-DD");

@@ -77,13 +77,26 @@ export function getRadarPointDeformData(data) {
 }
 
 /**
- * 获取形变速率数据
+ * 获取形变速度数据
  * @param {*} data
  * @returns
  */
 export function getDeformationVelocity(data) {
   return request({
     url: "/api/v1/radar_point/getDeformationVelocity",
+    method: "post",
+    data: data
+  });
+}
+
+/**
+ * 获取形变加速度数据
+ * @param {*} data
+ * @returns
+ */
+export function getDeformationAcceleration(data) {
+  return request({
+    url: "/api/v1/radar_point/getDeformationAcceleration",
     method: "post",
     data: data
   });

@@ -35,7 +35,7 @@
 
       <!-- 时间类型 -->
       <el-form-item label="时间类型">
-        <el-select v-model="localTimeType" size="mini" style="width: 80px" @change="onChangeTimeTypeEvent">
+        <el-select v-model="localTimeUnit" size="mini" style="width: 80px" @change="onChangeTimeUnitEvent">
           <el-option v-for="item in timeTypeOptions" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
       </el-form-item>
@@ -67,7 +67,7 @@ export default {
       default: () => 1
     },
     /** 时间颗粒度类型：[seconds,minutes,hours,days] */
-    timeType: {
+    timeUnit: {
       type: String,
       default: () => "seconds"
     },
@@ -112,7 +112,7 @@ export default {
       ],
       localTimeHours: this.timeHours,
       localDataType: this.dataType,
-      localTimeType: this.timeType,
+      localTimeUnit: this.timeUnit,
       localShowDataType: this.showDataType
     };
   },
@@ -130,7 +130,7 @@ export default {
       this.emitChangeTimeEvent();
     },
     // 选择时间类型事件
-    onChangeTimeTypeEvent() {
+    onChangeTimeUnitEvent() {
       this.emitChangeTimeEvent();
     },
     // 选择数据类型事件
@@ -165,7 +165,7 @@ export default {
         startTime,
         endTime,
         dataType: this.localDataType,
-        timeType: this.localTimeType,
+        timeUnit: this.localTimeUnit,
         timeHours: this.localTimeHours
       };
       this.$emit("changeTimeEvent", param);

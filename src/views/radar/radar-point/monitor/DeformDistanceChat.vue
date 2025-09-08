@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- 查询参数UI -->
-    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeUnit" :show-data-type="false" @changeTimeEvent="onChangeTimeEvent" />
+    <QueryParam :data-type="dataType" :time-hours="timeHours" :time-type="timeUnit" @changeTimeEvent="onChangeTimeEvent" />
 
     <div class="myChart-container">
       <!-- 折线图容器 -->
@@ -12,7 +12,7 @@
 
 <script>
 import QueryParam from "./QueryParam.vue";
-import { getDeformationVelocity } from "@/api/admin/radar-point";
+import { getRadarPointDeformData } from "@/api/admin/radar-point";
 import moment from "moment";
 // import { TestData } from "@/utils/test-demo";
 
@@ -37,7 +37,7 @@ echarts.use([
   UniversalTransition
 ]);
 export default {
-  name: "DeformVelocityChart", // 形变速度
+  name: "DeformDistanceChat", // 形变距离曲线
   components: { QueryParam },
   props: {
     radarInfo: {
@@ -56,9 +56,9 @@ export default {
       dateFormat: "YYYY-MM-DD HH:mm:ss",
       timers: [], // 统一管理定时器
       maxDate: null, // 查询的最大时间
-      seriesAData: [], // Max数据
-      seriesBData: [], // Avg数据
-      seriesCData: [], // Min数据
+      seriesAData: [], // 形变数据
+      seriesBData: [], // 表格数据
+      seriesCData: [], // 表格数据
       closed: false, // 页面是否已关闭
       /** 默认查询开始时间 */
       startTime: moment().subtract(1, "hours"),
@@ -150,8 +150,7 @@ export default {
       };
 
       try {
-        // 获取形变速率数据
-        const resp = await getDeformationVelocity(param);
+        const resp = await getRadarPointDeformData(param);
         if (!resp) return;
         let list = resp?.data?.list || [];
         let lastTime = resp?.data?.lastTime;
@@ -161,6 +160,7 @@ export default {
           console.log("查询参数已经改变，查询结果丢弃");
           return;
         }
+
         // 测试数据
         // let resp = TestData.GetPointDeformData(this.timeUnit, this.seriesAData.length != 0, this.maxDate);
         // if (!resp) return;
@@ -227,7 +227,7 @@ export default {
           left: "3%" // ← 绘图区距离容器左边 3%
         },
         title: {
-          text: `形变速度曲线 - ${this.radarPointInfo.pointName}`,
+          text: `形变距离曲线 - ${this.radarPointInfo.pointName}`,
           left: "center"
         },
         xAxis: {
@@ -240,7 +240,7 @@ export default {
           }
         },
         yAxis: {
-          name: "速度(mm/s)",
+          name: "距离值(mm)",
           type: "value",
           position: "bottom",
           boundaryGap: false, // 控制坐标轴两端是否留白
@@ -248,12 +248,6 @@ export default {
             formatter: "{value}"
           }
         },
-        // legend: {
-        //   // 设置图例在顶部
-        //   // bottom: 100 // 距离容器顶部的距离，单位为px
-        //   data: ["Max", "Avg", "Min"]
-        // },
-        // series: [],
         // 缩放
         dataZoom: [
           {
@@ -277,8 +271,13 @@ export default {
       this.bindClickEvent();
     },
 
-    //
-    bindClickEvent() {},
+    bindClickEvent() {
+      // this.myChart.on("legendselectchanged", this.onLegendselectchanged);
+    },
+    // 监听legend事件
+    // onLegendselectchanged(params) {
+    //   console.log("params:", params);
+    // },
     /** 销毁图表 */
     removeChart() {
       window.removeEventListener("resize", this.handleResize);
@@ -286,6 +285,7 @@ export default {
       this.seriesBData = [];
       this.seriesCData = [];
       if (this.myChart) {
+        // this.myChart.off("legendselectchanged", this.onLegendselectchanged);
         this.myChart.dispose();
         this.myChart = null;
       }
@@ -296,9 +296,9 @@ export default {
       this.handleResize();
 
       // 1. 格式化 series 数据，时间用 Date 对象
-      const newSeriesAData = data.map(item => [new Date(item.time), item.max.toFixed(4)]);
-      const newSeriesBData = data.map(item => [new Date(item.time), item.avg.toFixed(4)]);
-      const newSeriesCData = data.map(item => [new Date(item.time), item.min.toFixed(4)]);
+      const newSeriesAData = data.map(item => [new Date(item.time), item.distance / 100]);
+      // const newSeriesBData = data.map(item => [new Date(item.time), item.deformationAvg / 100]);
+      // const newSeriesCData = data.map(item => [new Date(item.time), item.deformationMin / 100]);
 
       // for (const item of newSeriesAData) {
       //   console.log("打印:", moment(item[0]).format(this.dateFormat), "形变值:", item[1]);
@@ -309,17 +309,19 @@ export default {
       if (this.seriesAData.length > newSeriesAData.length && this.seriesAData.length > 100) this.seriesAData.splice(0, addCount);
       this.seriesAData.push(...newSeriesAData);
       // B数据
-      if (this.seriesBData.length > newSeriesBData.length && this.seriesBData.length > 100) this.seriesBData.splice(0, addCount);
-      this.seriesBData.push(...newSeriesBData);
-      // C数据
-      if (this.seriesCData.length > newSeriesCData.length && this.seriesCData.length > 100) this.seriesCData.splice(0, addCount);
-      this.seriesCData.push(...newSeriesCData);
+      // if (this.seriesBData.length > newSeriesBData.length && this.seriesBData.length > 100) this.seriesBData.splice(0, addCount);
+      // this.seriesBData.push(...newSeriesBData);
+      // // C数据
+      // if (this.seriesCData.length > newSeriesCData.length && this.seriesCData.length > 100) this.seriesCData.splice(0, addCount);
+      // this.seriesCData.push(...newSeriesCData);
 
       let xAxisOption = {
         type: "time",
         axisLine: {
           onZero: false // 关闭与 y=0 对齐
         },
+        min: new Date(this.seriesAData[0][0]),
+        max: new Date(this.seriesAData[this.seriesAData.length - 1][0]),
         boundaryGap: false, // 防止自动留白生成额外刻度
         minInterval: (() => {
           switch (this.timeUnit) {
@@ -356,52 +358,20 @@ export default {
         }
       };
       // if (this.dataType == 1) {
-      xAxisOption.min = new Date(this.seriesAData[0][0]);
-      xAxisOption.max = new Date(this.seriesAData[this.seriesAData.length - 1][0]);
+
       // }
 
-      let legendData = ["最大值", "平均值", "最小值"];
+      let legendData = ["形变距离曲线"];
       let seriesOption = [
         {
-          name: "最大值",
+          name: "形变距离曲线",
           type: "line", // 折线图
           yAxisIndex: 0,
           sampling: "lttb", // 降采样
           showSymbol: this.seriesAData.length <= 1,
           data: this.seriesAData
-        },
-        {
-          name: "平均值",
-          type: "line", // 折线图
-          yAxisIndex: 0,
-          sampling: "lttb", // 降采样
-          showSymbol: this.seriesBData.length <= 1,
-          data: this.seriesBData
-        },
-        {
-          name: "最小值",
-          type: "line", // 折线图
-          yAxisIndex: 0,
-          sampling: "lttb", // 降采样
-          showSymbol: this.seriesCData.length <= 1,
-          data: this.seriesCData
         }
       ];
-
-      // 如果是查询最近1小时且时间颗粒度为秒，则只显示平均曲线
-      if (this.timeHours == "1" && this.timeUnit == "seconds") {
-        legendData = ["形变速度"];
-        seriesOption = [
-          {
-            name: "形变速度",
-            type: "line", // 折线图
-            yAxisIndex: 0,
-            sampling: "lttb", // 降采样
-            showSymbol: this.seriesBData.length <= 1,
-            data: this.seriesBData
-          }
-        ];
-      }
 
       // 4. 更新图表
       this.myChart?.setOption(
@@ -426,7 +396,7 @@ export default {
       this.myChart?.setOption(
         {
           xAxis: [],
-          series: [{ data: [] }, { data: [] }, { data: [] }]
+          series: [{ data: [] }]
         },
         false,
         false
@@ -454,7 +424,7 @@ export default {
     clearAllTimers() {
       this.timers.forEach(id => clearTimeout(id));
       this.timers = [];
-      console.log("DeformDataChart.所有轮询已停止");
+      console.log("DeformDistanceChat.所有轮询已停止");
     }
   }
 };

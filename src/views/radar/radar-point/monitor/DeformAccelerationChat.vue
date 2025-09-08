@@ -12,7 +12,7 @@
 
 <script>
 import QueryParam from "./QueryParam.vue";
-import { getDeformationVelocity } from "@/api/admin/radar-point";
+import { getDeformationAcceleration } from "@/api/admin/radar-point";
 import moment from "moment";
 // import { TestData } from "@/utils/test-demo";
 
@@ -37,7 +37,7 @@ echarts.use([
   UniversalTransition
 ]);
 export default {
-  name: "DeformVelocityChart", // 形变速度
+  name: "DeformAccelerationChat", // 形变加速度
   components: { QueryParam },
   props: {
     radarInfo: {
@@ -151,7 +151,7 @@ export default {
 
       try {
         // 获取形变速率数据
-        const resp = await getDeformationVelocity(param);
+        const resp = await getDeformationAcceleration(param);
         if (!resp) return;
         let list = resp?.data?.list || [];
         let lastTime = resp?.data?.lastTime;
@@ -227,7 +227,7 @@ export default {
           left: "3%" // ← 绘图区距离容器左边 3%
         },
         title: {
-          text: `形变速度曲线 - ${this.radarPointInfo.pointName}`,
+          text: `形变加速度曲线 - ${this.radarPointInfo.pointName}`,
           left: "center"
         },
         xAxis: {
@@ -390,10 +390,10 @@ export default {
 
       // 如果是查询最近1小时且时间颗粒度为秒，则只显示平均曲线
       if (this.timeHours == "1" && this.timeUnit == "seconds") {
-        legendData = ["形变速度"];
+        legendData = ["形变加速度"];
         seriesOption = [
           {
-            name: "形变速度",
+            name: "形变加速度",
             type: "line", // 折线图
             yAxisIndex: 0,
             sampling: "lttb", // 降采样

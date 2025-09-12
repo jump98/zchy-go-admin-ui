@@ -85,9 +85,9 @@ import { treeselect } from "@/api/admin/sys-dept";
 
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
+import { checkPermission } from "@/utils/permission";
 import RadarPoint from "../radar-point/index.vue";
 import RadarEditDialog from "./RadarEditDialog.vue";
-import { checkPermission } from "@/utils/permission";
 import RadarItemDialog from "./RadarItemDialog.vue";
 
 export default {
@@ -160,13 +160,14 @@ export default {
     async getList() {
       this.loading = true;
       let response = await getRadarList(this.addDateRange(this.queryParams, this.dateRange));
-      console.log("获得雷达设备列表:", response);
+      // console.log("获得雷达设备列表:", response);
       this.sysRadarList = response.data.list;
       this.total = response.data.count;
       this.loading = false;
     },
     /** 查询机构下拉树结构 */
     async getTreeselect() {
+      console.error("getTreeselect");
       let resp = await treeselect();
       this.deptOptions = resp.data;
     },
@@ -281,7 +282,7 @@ export default {
         type: "warning"
       })
         .then(function () {
-          row.fromProject = 0;
+          // row.fromProject = 0;
           updateSysRadar(row).then(response => {
             if (response.code === 200) {
               self.msgSuccess(response.msg);
@@ -295,7 +296,7 @@ export default {
           self.msgSuccess("成功");
         })
         .catch(function () {
-          row.fromProject = 1;
+          // row.fromProject = 1;
         });
     },
 
@@ -322,10 +323,10 @@ export default {
         })
         .catch(function () {});
     },
-    handleRowStyle({ row }) {
-      if (row.fromProject) {
-        return { backgroundColor: "#f0f9eb", color: "#67C23A" };
-      }
+    handleRowStyle() {
+      // if (row.fromProject) {
+      //   return { backgroundColor: "#f0f9eb", color: "#67C23A" };
+      // }
       return {};
     },
 

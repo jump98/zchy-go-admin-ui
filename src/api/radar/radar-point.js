@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import requestV2 from "@/utils/request_v2";
 
 // 查询RadarPoint列表
 export function getRadarPointList(query) {
@@ -13,9 +14,9 @@ export function getRadarPointList(query) {
  * @param {*} query
  * @returns
  */
-export function listDeptRadarPoint(query) {
-  return request({
-    url: "/api/v1/radar_point/getDeptList",
+export function getPointListByDeptId(query) {
+  return requestV2({
+    url: "/api/v1/radar_point/getPointListByDeptId",
     method: "get",
     params: query
   });
@@ -97,6 +98,15 @@ export function getDeformationVelocity(data) {
 export function getDeformationAcceleration(data) {
   return request({
     url: "/api/v1/radar_point/getDeformationAcceleration",
+    method: "post",
+    data: data
+  });
+}
+
+// 获得点位列表根据雷达Ids
+export function getPointListByRadarIds(data) {
+  return requestV2({
+    url: "/api/v1/radar_point/getPointListByRadarIds",
     method: "post",
     data: data
   });

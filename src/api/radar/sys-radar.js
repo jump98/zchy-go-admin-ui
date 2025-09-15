@@ -1,4 +1,5 @@
 import request from "@/utils/request";
+import requestV2 from "@/utils/request_v2";
 
 // 查询SysRadar列表
 export function getRadarList(query) {
@@ -84,6 +85,15 @@ export function getRadarStateInfo(data) {
 export function getRadarAlarmsBefore(data) {
   return request({
     url: "/api/v1/radar_info/get_alarms_before",
+    method: "post",
+    data: data
+  });
+}
+
+// 获得雷达列表
+export function getRadarListByDeptId(data) {
+  return requestV2({
+    url: "/api/v1/radar_info/getRadarListByDeptId",
     method: "post",
     data: data
   });

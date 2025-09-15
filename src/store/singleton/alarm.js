@@ -1,4 +1,4 @@
-import { getAlarmRules } from "@/api/radar/alarm";
+import { getPointAlarmRules, updatePointAlarmRules } from "@/api/radar/alarm";
 import { AlarmCheckList, AlarmLevelType, alarmLevelTypeOptions, AlarmOpOptions, AlarmTypeConfigMap, AlarmTypeList } from "./alarm_const";
 
 export class alarm {
@@ -32,8 +32,10 @@ export class alarm {
    */
   async GetAlarmRules(param) {
     console.log("参数：", param);
-    let { deptId } = param;
-    let has = this.alarmRuleMap.get(deptId);
+    let { deptId, radarPointId } = param;
+    param.deptId = Number(param.deptId);
+    let key = `${deptId}_${radarPointId}`;
+    let has = this.alarmRuleMap.get(key);
     if (has) {
       return has;
     }
@@ -41,17 +43,12 @@ export class alarm {
     // if (this.alarmRuleList.length != 0) {
     //   return this.alarmRuleList;
     // }
-    let resp = await getAlarmRules(param);
-    console.log("获取预警列表：", resp);
-    let { alarmRule, alarmRuleLevel } = resp;
+    let resp = await getPointAlarmRules(param);
+    console.log("获取监测点预警列表：", resp);
+    let { alarmRule } = resp;
     if (alarmRule.length === 0) return [];
-    alarmRule.forEach(rule => {
-      rule.levels = alarmRuleLevel.filter(level => level.alarmRuleId == rule.id);
-      rule.alarmCheckTypeValue = alarmRuleLevel.filter(item => item.value == rule.alarmCheckType);
-    });
     console.log("alarmRule:", alarmRule);
-    this.alarmRuleMap.set(deptId, alarmRule);
-
+    this.alarmRuleMap.set(key, alarmRule);
     return alarmRule;
   }
 
@@ -78,7 +75,7 @@ export class alarm {
   }
 
   /** 创建空的预警规则 */
-  CreateEmptyAlarmRule(deptId) {
+  _CreateEmptyAlarmRule(deptId) {
     let alarmRuleRow = {
       deptId: deptId,
       levels: []
@@ -119,5 +116,13 @@ export class alarm {
     }
     console.log("打印opotionDesc:", desc);
     return desc;
+  }
+
+  /** 更新预警规则 */
+  async UpdateAlarmRules(param) {
+    console.log("预警规则:", param);
+    let resp = await updatePointAlarmRules(param);
+    console.log("更新预警规则结果：", resp);
+    return resp;
   }
 }

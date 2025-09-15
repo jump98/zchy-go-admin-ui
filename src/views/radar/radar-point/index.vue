@@ -6,28 +6,30 @@
       <el-divider>雷达监测点列表</el-divider>
       <el-card class="box-card">
         <el-table v-loading="loading" :data="radarPointList" @selection-change="onSelectionChange">
-          <el-table-column label="名称" align="center" prop="pointName" :show-overflow-tooltip="true" />
           <el-table-column label="编号" align="center" prop="pointKey" :show-overflow-tooltip="true" />
-          <el-table-column label="下标" align="center" prop="pointIndex" :show-overflow-tooltip="true" />
-          <el-table-column label="类型" align="center" prop="pointType" :formatter="pointTypeFormat" width="100">
+          <el-table-column label="测点名称" align="center" prop="pointName" :show-overflow-tooltip="true" />
+          <el-table-column label="监测点位" align="center" prop="pointIndex" :show-overflow-tooltip="true" />
+          <!-- <el-table-column label="类型" align="center" prop="pointType" :formatter="pointTypeFormat" width="100">
             <template slot-scope="scope">
               {{ pointTypeFormat(scope.row) }}
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <!-- <el-table-column label="雷达" align="center" prop="radarId" :formatter="radarIdFormat" width="100">
             <template slot-scope="scope">
               {{ radarIdFormat(scope.row) }}
             </template>
           </el-table-column> -->
-          <el-table-column label="经度" align="center" prop="lng" :show-overflow-tooltip="true" /><el-table-column label="纬度" align="center" prop="lat" :show-overflow-tooltip="true" />
-          <el-table-column label="高度" align="center" prop="alt" :show-overflow-tooltip="true" /><el-table-column label="距离" align="center" prop="distance" :show-overflow-tooltip="true" />
-          <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" />
+          <el-table-column label="经度°" align="center" prop="lng" :show-overflow-tooltip="true" />
+          <el-table-column label="纬度°" align="center" prop="lat" :show-overflow-tooltip="true" />
+          <el-table-column label="高程m" align="center" prop="alt" :show-overflow-tooltip="true" />
+          <el-table-column label="距离m" align="center" prop="distance" :show-overflow-tooltip="true" />
+          <!-- <el-table-column label="距离m" align="center" prop="remark" :show-overflow-tooltip="true" /> -->
           <el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
             </template>
           </el-table-column>
-          <el-table-column label="消警状态" align="center" prop="xStatus" :formatter="xStatusFormat" width="100">
+          <!-- <el-table-column label="消警状态" align="center" prop="xStatus" :formatter="xStatusFormat" width="100">
             <template slot-scope="scope">
               {{ xStatusFormat(scope.row) }}
             </template>
@@ -36,7 +38,7 @@
             <template slot-scope="scope">
               {{ mTypeIdFormat(scope.row) }}
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <el-table-column label="操作" align="center" width="250" fixed="right">
             <template slot-scope="scope">
               <el-button slot="reference" size="mini" type="primary" @click="onClickXingBianBtn(scope.row)"> 数据 </el-button>
@@ -73,10 +75,10 @@
 import { delRadarPoint, getRadarPointList } from "@/api/radar/radar-point";
 
 import { getRadarList } from "@/api/radar/sys-radar";
+import { checkPermission } from "@/utils/permission";
+import PointEditDialog from "./PointEditDialog.vue";
 import RadarImage from "./RadarImage.vue";
 import RadarPointDetailDialog from "./RadarPointDetailDialog.vue";
-import PointEditDialog from "./PointEditDialog.vue";
-import { checkPermission } from "@/utils/permission";
 export default {
   name: "RadarPoint",
   components: {
@@ -180,21 +182,26 @@ export default {
       this.total = count;
       this.loading = false;
     },
-    pointTypeFormat(row) {
-      return this.selectDictLabel(this.pointTypeOptions, row.pointType);
-    },
-    radarIdFormat(row) {
-      return this.selectItemsLabel(this.radarIdOptions, row.radarId);
-    },
+    // pointTypeFormat(row) {
+    //   return this.selectDictLabel(this.pointTypeOptions, row.pointType);
+    // },
+    // radarIdFormat(row) {
+    //   return this.selectItemsLabel(this.radarIdOptions, row.radarId);
+    // },
     aStatusFormat(row) {
-      return this.selectDictLabel(this.aStatusOptions, row.aStatus);
+      let t = row.aStatus;
+      if (t == 0) {
+        return "已激活";
+      } else {
+        return "未激活";
+      }
     },
-    xStatusFormat(row) {
-      return this.selectDictLabel(this.xStatusOptions, row.xStatus);
-    },
-    mTypeIdFormat(row) {
-      return this.selectDictLabel(this.mTypeIdOptions, row.mTypeId);
-    },
+    // xStatusFormat(row) {
+    //   return this.selectDictLabel(this.xStatusOptions, row.xStatus);
+    // },
+    // mTypeIdFormat(row) {
+    //   return this.selectDictLabel(this.mTypeIdOptions, row.mTypeId);
+    // },
     // 获得关系表数据
     // TODO: 需要优化
     getSysRadarItems() {

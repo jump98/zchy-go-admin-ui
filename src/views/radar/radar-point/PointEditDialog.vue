@@ -9,13 +9,20 @@
             </el-select>
           </el-form-item>
         </el-col>
+
         <el-col :span="12">
+          <el-form-item label="监测点位" prop="pointIndex">
+            <el-input-number v-model.number="radarPointRow.pointIndex" disabled :controls="false" class="lnglatnumber" />
+          </el-form-item>
+        </el-col>
+
+        <!-- <el-col :span="12">
           <el-form-item label="监测点类型" prop="pointType">
             <el-select v-model="radarPointRow.pointType" placeholder="请选择">
               <el-option v-for="dict in pointTypeOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
             </el-select>
           </el-form-item>
-        </el-col>
+        </el-col> -->
       </el-row>
       <el-form-item label="监测点名称" prop="pointName">
         <el-input v-model="radarPointRow.pointName" placeholder="监测点名称" />
@@ -25,63 +32,31 @@
       </el-form-item>
       <el-row>
         <el-col :span="12">
-          <el-form-item label="经度" prop="lng">
-            <el-input v-model="radarPointRow.lng" placeholder="经度" />
+          <el-form-item label="经度°" prop="lng">
+            <el-input v-model="radarPointRow.lng" placeholder="经度°" />
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="纬度" prop="lat">
-            <el-input v-model="radarPointRow.lat" placeholder="纬度" />
+          <el-form-item label="纬度°" prop="lat">
+            <el-input v-model="radarPointRow.lat" placeholder="纬度°" />
           </el-form-item>
         </el-col>
       </el-row>
       <el-row>
-        <el-col :span="11">
-          <el-form-item label="高度" prop="alt">
-            <el-input v-model="radarPointRow.alt" placeholder="高度" />
+        <el-col :span="12">
+          <el-form-item label="高程m" prop="alt">
+            <el-input v-model="radarPointRow.alt" placeholder="高程m" />
           </el-form-item>
         </el-col>
-        <el-col :span="1"><label class="el-form-item__label">米</label></el-col>
-        <el-col :span="11">
-          <el-form-item label="距离" prop="distance">
-            <el-input v-model="radarPointRow.distance" placeholder="距离" />
+        <el-col :span="12">
+          <el-form-item label="距离m" prop="distance">
+            <el-input v-model="radarPointRow.distance" placeholder="距离m" />
           </el-form-item>
         </el-col>
-        <el-col :span="1"><label class="el-form-item__label">米</label></el-col>
       </el-row>
       <el-form-item label="备注" prop="remark">
         <el-input v-model="radarPointRow.remark" placeholder="备注" />
       </el-form-item>
-      <el-row>
-        <el-col :span="12">
-          <el-form-item label="激活状态" prop="aStatus">
-            <el-select v-model="radarPointRow.aStatus" placeholder="请选择">
-              <el-option v-for="dict in aStatusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="消警状态" prop="xStatus">
-            <el-select v-model="radarPointRow.xStatus" placeholder="请选择">
-              <el-option v-for="dict in xStatusOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="12">
-          <el-form-item label="门限类型" prop="mTypeId">
-            <el-select v-model="radarPointRow.mTypeId" placeholder="请选择">
-              <el-option v-for="dict in mTypeIdOptions" :key="dict.value" :label="dict.label" :value="dict.value" />
-            </el-select>
-          </el-form-item>
-        </el-col>
-        <el-col :span="12">
-          <el-form-item label="下标" prop="pointIndex">
-            <el-input-number v-model.number="radarPointRow.pointIndex" placeholder="请输入0-1999之间的数字" :controls="false" class="lnglatnumber" />
-          </el-form-item>
-        </el-col>
-      </el-row>
     </el-form>
     <div slot="footer" class="dialog-footer">
       <el-button type="primary" @click="onClickSubmitFormBtn">确 定</el-button>
@@ -91,8 +66,8 @@
 </template>
 
 <script>
-import { formValidation } from "@/utils/validate";
 import { addRadarPoint, updateRadarPoint } from "@/api/radar/radar-point";
+import { formValidation } from "@/utils/validate";
 
 export default {
   name: "RadarEditDialog",
@@ -165,19 +140,6 @@ export default {
             validator: formValidation.validatorLatitude,
             message: "纬度范围：-90~90（保留小数点后七位）",
             trigger: "change"
-          }
-        ],
-        pointIndex: [
-          {
-            required: true,
-            validator: (rule, value, callback) => {
-              if (value === undefined || value === "" || value < 0 || value > 19999) {
-                callback(new Error("请输入0-19999之间的数字"));
-              } else {
-                callback();
-              }
-            },
-            trigger: "blur" // 触发校验的时机
           }
         ]
       },

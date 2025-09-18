@@ -160,14 +160,14 @@ export default {
     async getList() {
       this.loading = true;
       let response = await getRadarList(this.addDateRange(this.queryParams, this.dateRange));
-      // console.log("获得雷达设备列表:", response);
-      this.sysRadarList = response.data.list;
-      this.total = response.data.count;
+      // console.log("获得雷达设备列表:", response.data);
+      let { list, count } = response.data;
+      this.sysRadarList = list;
+      this.total = count;
       this.loading = false;
     },
     /** 查询机构下拉树结构 */
     async getTreeselect() {
-      console.error("getTreeselect");
       let resp = await treeselect();
       this.deptOptions = resp.data;
     },
@@ -216,18 +216,7 @@ export default {
       this.getTreeselect();
       this.openEditDialog = true;
       this.dialogAction = 2;
-      this.radarRow = {
-        // radarId: 0,
-        // radarName: "",
-        // radarKey: "",
-        // specialKey: "",
-        // deptId: 0,
-        // lng: "",
-        // lat: "",
-        // alt: "",
-        // remark: "",
-        // status: 0
-      };
+      this.radarRow = {};
     },
     /** 修改按钮操作 */
     onClickUpdateRadarBtn(row) {
@@ -263,41 +252,12 @@ export default {
     onHandleCurrentChange(currentRow) {
       console.log("当表格的当前行发生变化的时候会触发该事件:", currentRow);
       if (currentRow) {
-        console.log("设置curradarid:", currentRow.radarId);
         this.curradarid = currentRow.radarId;
-        this.$refs.refRadarPoint.getList(this.curradarid);
+        // this.$refs.refRadarPoint.getList();
       } else {
-        console.log("设置curradarid=0");
         this.curradarid = 0;
       }
       this.radarRow = currentRow || null;
-    },
-
-    // 确定按钮
-    handleConfirmProject(row) {
-      let self = this;
-      this.$confirm('要确认"' + row.radarName + '"雷达吗?', "警告", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(function () {
-          // row.fromProject = 0;
-          updateSysRadar(row).then(response => {
-            if (response.code === 200) {
-              self.msgSuccess(response.msg);
-              self.getList();
-            } else {
-              self.msgError(response.msg);
-            }
-          });
-        })
-        .then(() => {
-          self.msgSuccess("成功");
-        })
-        .catch(function () {
-          // row.fromProject = 1;
-        });
     },
 
     /** 删除按钮操作 */

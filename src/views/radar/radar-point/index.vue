@@ -24,11 +24,11 @@
           <el-table-column label="高程m" align="center" prop="alt" :show-overflow-tooltip="true" />
           <el-table-column label="距离m" align="center" prop="distance" :show-overflow-tooltip="true" />
           <!-- <el-table-column label="距离m" align="center" prop="remark" :show-overflow-tooltip="true" /> -->
-          <el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
+          <!-- <el-table-column label="激活状态" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
             <template slot-scope="scope">
               {{ aStatusFormat(scope.row) }}
             </template>
-          </el-table-column>
+          </el-table-column> -->
           <!-- <el-table-column label="消警状态" align="center" prop="xStatus" :formatter="xStatusFormat" width="100">
             <template slot-scope="scope">
               {{ xStatusFormat(scope.row) }}
@@ -41,7 +41,7 @@
           </el-table-column> -->
           <el-table-column label="操作" align="center" width="250" fixed="right">
             <template slot-scope="scope">
-              <el-button slot="reference" size="mini" type="primary" @click="onClickXingBianBtn(scope.row)"> 数据 </el-button>
+              <el-button slot="reference" size="mini" type="primary" @click="onClickXingBianBtn(scope.row)"> 曲线 </el-button>
               <el-button slot="reference" v-permisaction="['radar:radarPoint:edit']" size="mini" type="success" @click="onClickUpdateBtn(scope.row)"> 修改 </el-button>
               <el-button slot="reference" v-permisaction="['radar:radarPoint:remove']" size="mini" type="danger" @click="onClickDeleteBtn(scope.row)"> 删除 </el-button>
             </template>
@@ -141,14 +141,17 @@ export default {
   },
 
   watch: {
-    // radarId: {
-    //   handler(newVal) {
-    //     console.log("index.vue.radarId=", newVal);
-    //   }
-    // }
+    radarId: {
+      handler(newVal) {
+        if (!newVal) return;
+        console.error("雷达id变动：", newVal);
+        this.getList();
+      }
+    }
   },
   created() {
-    this.getList();
+    console.log("radarId:", this.radarId);
+    // this.getList();
     this.getDicts("radar_point_type").then(response => {
       this.pointTypeOptions = response.data;
     });
@@ -170,13 +173,14 @@ export default {
       return ok;
     },
     /** 查询RadarPoint列表 */
-    async getList(radarId) {
-      console.log("查询雷达点位信息，radarid:", radarId);
-      if (!radarId) radarId = this.radarId;
+    async getList() {
+      let radarId = this.radarId;
       if (!radarId) return;
+      console.log("查询雷达监测点信息radarid:", radarId);
       this.loading = true;
       this.queryParams.radarId = radarId;
       let resp = await getRadarPointList(this.addDateRange(this.queryParams, this.dateRange));
+      console.log("查询雷达点位信息结果：", resp);
       let { list, count } = resp.data;
       this.radarPointList = list;
       this.total = count;

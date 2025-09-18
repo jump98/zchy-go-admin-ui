@@ -11,15 +11,15 @@
 </template>
 
 <script>
-import QueryParam from "./QueryParam.vue";
 import { getDeformationAcceleration } from "@/api/radar/radar-point";
 import moment from "moment";
+import QueryParam from "./QueryParam.vue";
 // import { TestData } from "@/utils/test-demo";
 
 // 按需引入（推荐，体积更小）
-import * as echarts from "echarts/core";
-import { TooltipComponent, GridComponent, LegendComponent, TitleComponent, DataZoomComponent, MarkLineComponent, MarkPointComponent } from "echarts/components";
 import { LineChart } from "echarts/charts";
+import { DataZoomComponent, GridComponent, LegendComponent, MarkLineComponent, MarkPointComponent, TitleComponent, TooltipComponent } from "echarts/components";
+import * as echarts from "echarts/core";
 import { UniversalTransition } from "echarts/features";
 import { CanvasRenderer } from "echarts/renderers";
 
@@ -227,7 +227,7 @@ export default {
           left: "3%" // ← 绘图区距离容器左边 3%
         },
         title: {
-          text: `形变加速度曲线 - ${this.radarPointInfo.pointName}`,
+          text: `加速度曲线 - ${this.radarPointInfo.pointName}`,
           left: "center"
         },
         xAxis: {
@@ -390,10 +390,10 @@ export default {
 
       // 如果是查询最近1小时且时间颗粒度为秒，则只显示平均曲线
       if (this.timeHours == "1" && this.timeUnit == "seconds") {
-        legendData = ["形变加速度"];
+        legendData = ["加速度曲线"];
         seriesOption = [
           {
-            name: "形变加速度",
+            name: "加速度曲线",
             type: "line", // 折线图
             yAxisIndex: 0,
             sampling: "lttb", // 降采样

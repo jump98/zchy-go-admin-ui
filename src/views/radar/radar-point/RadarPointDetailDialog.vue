@@ -4,7 +4,7 @@
       <el-tab-pane label="监测数据" name="1">
         <RadarPointMoniror v-if="actionName == 1" :radar-info="radarInfo" :radar-point-info="radarPointInfo" />
       </el-tab-pane>
-      <el-tab-pane label="预警信息" name="2">预警信息</el-tab-pane>
+      <el-tab-pane label="预警信息" name="2">预警信息-开发中</el-tab-pane>
     </el-tabs>
   </el-dialog>
 </template>

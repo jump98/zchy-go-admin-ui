@@ -16,7 +16,7 @@
           <el-col :span="4">
             <el-form-item prop="blueOption" label-width="70px">
               <template #label>
-                <span class="label-color blue">蓝色：</span>
+                <span class="label-color blue">蓝级：</span>
               </template>
               <el-input v-model="item.blueOption" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="预警值" style="width: 100%" />
             </el-form-item>
@@ -24,7 +24,7 @@
           <el-col :span="4">
             <el-form-item prop="yellowOption" label-width="70px">
               <template #label>
-                <span class="label-color yellow">黄色：</span>
+                <span class="label-color yellow">黄级：</span>
               </template>
               <el-input v-model="item.yellowOption" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="预警值" style="width: 100%" />
             </el-form-item>
@@ -32,7 +32,7 @@
           <el-col :span="4">
             <el-form-item prop="orangeOption" label-width="70px">
               <template #label>
-                <span class="label-color orange">橙色：</span>
+                <span class="label-color orange">橙级：</span>
               </template>
               <el-input v-model="item.orangeOption" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="预警值" style="width: 100%" />
             </el-form-item>
@@ -40,7 +40,7 @@
           <el-col :span="4">
             <el-form-item prop="redOption" label-width="70px">
               <template #label>
-                <span class="label-color red">红色：</span>
+                <span class="label-color red">红级：</span>
               </template>
               <el-input v-model="item.redOption" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="预警值" style="width: 100%" />
             </el-form-item>
@@ -53,8 +53,8 @@
     <el-form v-if="alarmRuleList && alarmRuleList.length > 0" ref="formRef2" :model="alarmRuleList[0]" size="small" label-width="100px" :rules="rules2">
       <el-row style="margin-top: 10px">
         <el-col :span="12">
-          <el-form-item label-width="150px" label="持续报警时间跨度：" prop="duration">
-            <el-input v-model="alarmRuleList[0].duration" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="必填" :style="{ width: '100%' }">
+          <el-form-item label-width="150px" label="持续报警时间跨度：" prop="interval">
+            <el-input v-model="alarmRuleList[0].interval" :disabled="localMTypeId == 0 && radarPointId != 0" placeholder="必填" :style="{ width: '100%' }">
               <template slot="append">单位：分钟，≥10</template>
             </el-input>
           </el-form-item>
@@ -98,14 +98,14 @@ export default {
       title: "",
       // 表单校验
       rules: {
-        blueOption: [{ required: true, message: "蓝色预警值不能为空", trigger: "blur" }],
-        yellowOption: [{ required: true, message: "黄色预警值不能为空", trigger: "blur" }],
-        orangeOption: [{ required: true, message: "橙色预警值不能为空", trigger: "blur" }],
-        redOption: [{ required: true, message: "红色预警值不能为空", trigger: "blur" }]
+        blueOption: [{ required: true, message: "蓝级预警值不能为空", trigger: "blur" }],
+        yellowOption: [{ required: true, message: "黄级预警值不能为空", trigger: "blur" }],
+        orangeOption: [{ required: true, message: "橙级预警值不能为空", trigger: "blur" }],
+        redOption: [{ required: true, message: "红级预警值不能为空", trigger: "blur" }]
       },
       // 表单校验
       rules2: {
-        duration: [
+        interval: [
           { required: true, message: "持续报警时间跨度不能为空", trigger: "blur" },
           {
             validator: (rule, value, callback) => {
@@ -252,7 +252,7 @@ export default {
 };
 </script>
 <style>
-/* 不同颜色对应背景 */
+/* 不同颜级对应背景 */
 .label-color.blue {
   color: #06bdf2 !important;
 }

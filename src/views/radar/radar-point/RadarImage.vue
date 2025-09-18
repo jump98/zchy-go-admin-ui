@@ -3,9 +3,9 @@
 </template>
 
 <script>
+import { getSysRadarImage } from "@/api/radar/sys-radar";
 import moment from "moment";
 import RadarImageChart from "./RadarImageChart.vue";
-import { getSysRadarImage } from "@/api/radar/sys-radar";
 
 export default {
   name: "RadarImage",
@@ -25,7 +25,7 @@ export default {
   },
   data() {
     return {
-      timerId: null,
+      timers: [], // 统一管理定时器
       imageData: [], // 数据数组
       imageTime: "", // 服务器时间
       showChart: false // 显示报表
@@ -38,7 +38,7 @@ export default {
         this.showChart = !!newVal;
         console.log("监听radarid变化:", newVal);
         // 清除之前的定时器
-        this.closeTimeout();
+        this.clearAllTimers();
         this.getImageData(newVal);
       }
     }
@@ -53,13 +53,13 @@ export default {
 
   deactivated() {
     // keep-alive 页面隐藏时停止轮询
-    this.closeTimeout();
+    this.clearAllTimers();
   },
 
   beforeDestroy() {
     // 组件销毁前彻底停止轮询
     console.log("RadarStateInfo beforeDestroy");
-    this.closeTimeout();
+    this.clearAllTimers();
   },
   destroyed() {
     console.log("RadarStateInfo destroyed");
@@ -80,20 +80,31 @@ export default {
         this.imageData = Data;
         this.imageTime = moment(TimeStamp * 1000).format("YYYY-MM-DD HH时mm分ss秒");
         this.showChart = true;
-        // this.timerId = setTimeout(() => this.getImageData(radarId), 1000); // 30秒轮询
+        this.addTimeout(() => this.getImageData(radarId), 1000);
       } catch (error) {
         this.showChart = false;
         // 后续可以根据失败的次数，来设置timeout的时间间隔
-        this.closeTimeout();
+        this.clearAllTimers();
       }
     },
-    // 关闭定时器
-    closeTimeout() {
-      if (this.timerId) {
-        clearTimeout(this.timerId);
-        this.timerId = null;
-        console.log("RadarImage.轮询已停止");
-      }
+    // 添加定时器并保存到数组
+    addTimeout(fn, delay) {
+      if (this.timers.length > 0) return;
+      // if (this.closed) return;
+      const id = setTimeout(() => {
+        fn();
+        // 一次性定时器执行后可移除
+        this.timers = this.timers.filter(t => t !== id);
+      }, delay);
+      this.timers.push(id);
+      return id;
+    },
+
+    // 清理所有定时器
+    clearAllTimers() {
+      this.timers.forEach(id => clearTimeout(id));
+      this.timers = [];
+      console.log("RadarImage.所有轮询已停止");
     }
   }
 };

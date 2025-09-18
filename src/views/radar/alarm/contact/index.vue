@@ -1,12 +1,10 @@
 <template>
   <BasicLayout>
-    <template #wrapper> 预警联系人组 </template>
+    <template #wrapper> 预警记录列表-开发中 </template>
   </BasicLayout>
 </template>
 
 <script>
-import { getDeptList, getDept, delDept, addDept, updateDept } from "@/api/admin/sys-dept";
-import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
 
 export default {

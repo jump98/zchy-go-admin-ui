@@ -43,15 +43,15 @@
             <el-table-column label="高程m" align="center" prop="alt" :show-overflow-tooltip="true" />
             <el-table-column label="距离m" align="center" prop="distance" :show-overflow-tooltip="true" />
             <!-- <el-table-column label="备注" align="center" prop="remark" :show-overflow-tooltip="true" /> -->
-            <el-table-column label="激活状态" class-name="status-green" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
+            <!-- <el-table-column label="激活状态" class-name="status-green" align="center" prop="aStatus" :formatter="aStatusFormat" width="100">
               <template slot-scope="{ row }">
                 <span :style="{ color: row.aStatus === 0 ? 'green' : 'red' }">
                   {{ aStatusFormat(row.aStatus) }}
                 </span>
               </template>
-            </el-table-column>
+            </el-table-column> -->
 
-            <el-table-column label="消警状态" align="center" prop="xStatus" width="100" />
+            <el-table-column label="预警状态" align="center" prop="alarmLevel" :formatter="alarmLevelFormat" width="100" />
             <el-table-column label="门限类型" align="center" prop="mTypeId" :formatter="mTypeIdFormat" width="100" />
             <el-table-column label="操作" align="center" width="250" fixed="right">
               <template slot-scope="scope">
@@ -61,7 +61,7 @@
             </el-table-column>
           </el-table>
 
-          <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageIndex" :radar-point-name="inputRadarPointName" :limit.sync="queryParams.pageSize" @pagination="radarPointList" />
+          <pagination v-show="total > 0" :total="total" :page.sync="queryParams.pageIndex" :limit.sync="queryParams.pageSize" @pagination="getRadarPointList" />
         </el-card>
 
         <!-- <el-table v-loading="loading" :data="alarmRuleList" row-key="id" default-expand-all border :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" :row-style="handleRowStyle">
@@ -201,6 +201,21 @@ export default {
     createdAtFormat(row) {
       console.log("createdAtFormat.row:", row);
       return moment(row.createdAt).format("YYYY-MM-DD HH:mm:ss");
+    },
+    alarmLevelFormat(row) {
+      let t = row.alarmLevel;
+      switch (t) {
+        case 1:
+          return "蓝级";
+        case 2:
+          return "黄级";
+        case 3:
+          return "橙级";
+        case 4:
+          return "红级";
+        default:
+          return "正常";
+      }
     },
     mTypeIdFormat(row) {
       let t = row.mTypeId;

@@ -71,7 +71,7 @@
 
 <script>
 import { Alarm, PopActionType } from "@/store/singleton/app";
-import AlarmRuleOptionEditPop from "./AlarmRuleOptionEditPop.vue";
+import AlarmRuleOptionEditPop from "./_AlarmRuleOptionEditPop.vue";
 
 export default {
   name: "AlarmRuleEditPop",

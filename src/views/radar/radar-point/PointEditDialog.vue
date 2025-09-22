@@ -167,6 +167,7 @@ export default {
             updateRadarPoint(this.radarPointRow).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg);
+                this.$emit("radarPointEditSuccesEvent", this.dialogAction, { ...this.radarPointRow });
               } else {
                 this.msgError(response.msg);
               }
@@ -174,13 +175,15 @@ export default {
           }
           // 新增
           if (this.dialogAction == 2) {
-            this.radarPointRow.radarId = this.radarId;
+            let radarPointRow = { ...this.radarPointRow };
+            radarPointRow.radarId = this.radarId;
             addRadarPoint(this.radarPointRow).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg);
-                this.radarPointRow.id = response.data;
-                console.log("radarPointRow:", this.radarPointRow);
-                this.$emit("addRadarPointSuccesEvent", this.radarPointRow);
+                radarPointRow.id = response.data;
+                console.log("新增radarPointRow:", radarPointRow);
+
+                this.$emit("radarPointEditSuccesEvent", this.dialogAction, radarPointRow);
                 // this.getList();
               } else {
                 this.msgError(response.msg);

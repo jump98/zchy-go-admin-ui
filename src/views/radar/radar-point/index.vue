@@ -61,7 +61,7 @@
           :radar-id-options="radarIdOptions"
           :radar-id="radarId"
           :dialog-action="dialogAction"
-          @addRadarPointSuccesEvent="onAddRadarPointSuccesEvent"
+          @radarPointEditSuccesEvent="onRadarPointEditSuccesEvent"
         />
 
         <!-- 监控点信息弹窗-->
@@ -169,7 +169,6 @@ export default {
   methods: {
     checkThisPermission(value) {
       let ok = checkPermission(value);
-      console.log("checkPermission(value):", checkPermission(value));
       return ok;
     },
     /** 查询RadarPoint列表 */
@@ -216,7 +215,7 @@ export default {
         console.log("获得关系表数据:", this.radarIdOptions);
       });
     },
-    // 点击点事件
+    // 新增点位
     onClickRadarPointEvent(data) {
       console.log("新增点位：", data);
       this.radarPointRow = { pointIndex: data.index };
@@ -233,14 +232,26 @@ export default {
     /** 修改按钮操作 */
     async onClickUpdateBtn(row) {
       console.log("修改点位信息", row);
-      this.radarPointRow = row;
+      this.radarPointRow = { ...row };
       this.openDialog = true;
       this.dialogAction = 1;
     },
-    // 添加点成功事件
-    onAddRadarPointSuccesEvent(data) {
-      console.log("添加点成功事件:", data);
-      this.radarPointList.push(data);
+    // 编辑点成功事件
+    onRadarPointEditSuccesEvent(action, data) {
+      if (action == 1) {
+        for (let i = 0; i < this.radarPointList.length; i++) {
+          let item = this.radarPointList[i];
+          if (item.id == data.id) {
+            this.$set(this.radarPointList, i, data);
+            console.log("修改点成功：", data);
+            break;
+          }
+        }
+      }
+      if (action == 2) {
+        console.log("添加点成功事件:", data);
+        this.radarPointList.push(data);
+      }
     },
 
     /** 删除按钮操作 */

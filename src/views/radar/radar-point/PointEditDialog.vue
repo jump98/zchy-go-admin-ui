@@ -177,7 +177,7 @@ export default {
           if (this.dialogAction == 2) {
             let radarPointRow = { ...this.radarPointRow };
             radarPointRow.radarId = this.radarId;
-            addRadarPoint(this.radarPointRow).then(response => {
+            addRadarPoint(radarPointRow).then(response => {
               if (response.code === 200) {
                 this.msgSuccess(response.msg);
                 radarPointRow.id = response.data;
